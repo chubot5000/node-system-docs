@@ -72,14 +72,7 @@ body {
 }
 
 .react-flow__minimap { display: none; }
-
-/* Controls: top right */
-.react-flow__controls {
-  top: 16px !important;
-  right: 16px !important;
-  bottom: auto !important;
-  left: auto !important;
-}
+.react-flow__controls { display: none !important; }
 
 /* Edge label styling */
 .react-flow__edge-textwrapper {

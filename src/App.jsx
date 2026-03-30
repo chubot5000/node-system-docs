@@ -6,16 +6,14 @@ import {
   useNodesState,
   useEdgesState,
   useUpdateNodeInternals,
-  Controls,
   Background,
   BackgroundVariant,
   ConnectionMode,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
-import Sidebar from './components/Sidebar'
+import RightPanel from './components/RightPanel'
 import CanvasFrame from './components/CanvasFrame'
-import ExportPanel from './components/ExportPanel'
 import LargeTitleNode from './components/LargeTitleNode'
 import TitleNode from './components/TitleNode'
 import TextNode from './components/TextNode'
@@ -322,7 +320,6 @@ function Flow() {
   return (
     <ConnectorContext.Provider value={{ activeConnectorType, onHandleContextMenu, onAddHandle, onRemoveHandle }}>
       <div className="flex h-screen w-screen" onKeyDown={onKeyDown} tabIndex={0}>
-        <Sidebar activeConnectorType={activeConnectorType} onConnectorTypeChange={setActiveConnectorType} />
         <div className="flex-1 h-full" ref={reactFlowWrapper}>
           <ReactFlow
             nodes={nodes}
@@ -350,10 +347,9 @@ function Flow() {
             style={{ background: '#F5F3F0' }}
           >
             <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#D5D0CC" />
-            <Controls position="top-right" />
           </ReactFlow>
         </div>
-        <ExportPanel canvasW={canvasW} canvasH={canvasH} onCanvasChange={onCanvasChange} />
+        <RightPanel canvasW={canvasW} canvasH={canvasH} onCanvasChange={onCanvasChange} />
         {selectedEdge && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setSelectedEdge(null)} />
