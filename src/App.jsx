@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useRef, useState } from 'react'
+import { createContext, useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -27,6 +27,7 @@ import ContextMenu from './components/ContextMenu'
 import HandleContextMenu from './components/HandleContextMenu'
 import PaneContextMenu from './components/PaneContextMenu'
 import { nextHandleId, countOnSide } from './utils/handleUtils'
+import { useTheme } from './ThemeContext'
 
 export const ConnectorContext = createContext('plain')
 
@@ -100,6 +101,7 @@ let id = 2
 const getId = () => `${id++}`
 
 function Flow() {
+  const { theme, mode } = useTheme()
   const reactFlowWrapper = useRef(null)
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -909,9 +911,9 @@ function Flow() {
             fitView
             fitViewOptions={{ padding: 0.08, maxZoom: 0.8 }}
             deleteKeyCode={null}
-            style={{ background: '#F5F3F0' }}
+            style={{ background: theme.bg }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#D5D0CC" />
+            <Background variant={BackgroundVariant.Dots} gap={15} size={1} color={theme.dotColor} />
             {/* Bridge connectors rendered in flow-coordinate space */}
           </ReactFlow>
         </div>
@@ -962,8 +964,8 @@ function Flow() {
             <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setBridgeMenu(null)} onContextMenu={(e) => { e.preventDefault(); setBridgeMenu(null) }} />
             <div style={{
               position: 'fixed', left: bridgeMenu.x, top: bridgeMenu.y, zIndex: 100,
-              background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 160, padding: '6px 0',
+              background: theme.menuBg, borderRadius: 8, border: `1px solid ${theme.menuBorder}`,
+              boxShadow: theme.menuShadow, minWidth: 160, padding: '6px 0',
               fontFamily: 'SwissNow, Inter, sans-serif',
             }}>
               <div

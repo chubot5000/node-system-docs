@@ -1,5 +1,6 @@
 import { memo, useRef, useEffect } from 'react'
 import { useSmartPosition } from '../utils/useSmartPosition'
+import { useTheme } from '../ThemeContext'
 
 const ArrowIcon = ({ rotate = 0 }) => (
   <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -10,9 +11,7 @@ const ArrowIcon = ({ rotate = 0 }) => (
 )
 
 const connectorOptions = [
-  { id: 'plain', label: 'Plain', preview: (
-    <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white' }} />
-  )},
+  { id: 'plain', label: 'Plain', preview: <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white' }} /> },
   { id: 'arrow-right', label: 'Arrow Right', preview: <ArrowIcon rotate={0} /> },
   { id: 'arrow-left', label: 'Arrow Left', preview: <ArrowIcon rotate={180} /> },
   { id: 'arrow-up', label: 'Arrow Up', preview: <ArrowIcon rotate={-90} /> },
@@ -22,60 +21,49 @@ const connectorOptions = [
       <span style={{ fontSize: 14, color: '#747474', fontWeight: 600 }}>+</span>
     </div>
   )},
-  { id: 'black', label: 'Black', preview: (
-    <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'black' }} />
-  )},
+  { id: 'black', label: 'Black', preview: <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'black' }} /> },
 ]
 
 function HandleContextMenu({ x, y, currentType, onSelect, onRemove, onClose }) {
+  const { theme } = useTheme()
   const ref = useRef()
   const pos = useSmartPosition(ref, x, y)
 
   useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) onClose()
-    }
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose() }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
 
   return (
-    <div
-      ref={ref}
-      style={{
-        position: 'fixed', left: pos.left, top: pos.top, zIndex: 100,
-        background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 180, padding: '6px 0',
-        fontFamily: 'SwissNow, Inter, sans-serif',
-      }}
-    >
-      <div style={{ padding: '4px 16px 6px', fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+    <div ref={ref} style={{
+      position: 'fixed', left: pos.left, top: pos.top, zIndex: 100,
+      background: theme.menuBg, borderRadius: 8, border: `1px solid ${theme.menuBorder}`,
+      boxShadow: theme.menuShadow, minWidth: 180, padding: '6px 0',
+      fontFamily: 'SwissNow, Inter, sans-serif',
+    }}>
+      <div style={{ padding: '4px 16px 6px', fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         Connector Type
       </div>
       {connectorOptions.map((opt) => (
-        <div
-          key={opt.id}
-          onClick={() => { onSelect(opt.id); onClose() }}
+        <div key={opt.id} onClick={() => { onSelect(opt.id); onClose() }}
           style={{
-            padding: '6px 16px', cursor: 'pointer', fontSize: 13, color: '#655343',
+            padding: '6px 16px', cursor: 'pointer', fontSize: 13, color: theme.text,
             display: 'flex', alignItems: 'center', gap: 10,
-            background: currentType === opt.id ? '#f5f3f0' : 'transparent',
+            background: currentType === opt.id ? theme.hoverBg : 'transparent',
             fontWeight: currentType === opt.id ? 600 : 400,
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f3f0'}
-          onMouseLeave={(e) => e.currentTarget.style.background = currentType === opt.id ? '#f5f3f0' : 'transparent'}
-        >
+          onMouseEnter={(e) => e.currentTarget.style.background = theme.hoverBg}
+          onMouseLeave={(e) => e.currentTarget.style.background = currentType === opt.id ? theme.hoverBg : 'transparent'}>
           {opt.preview}
           {opt.label}
         </div>
       ))}
-      <div style={{ height: 1, background: '#E0DCDA', margin: '4px 0' }} />
-      <div
-        onClick={() => { onRemove(); onClose() }}
+      <div style={{ height: 1, background: theme.menuBorder, margin: '4px 0' }} />
+      <div onClick={() => { onRemove(); onClose() }}
         style={{ padding: '6px 16px', cursor: 'pointer', fontSize: 13, color: '#ff4444', display: 'flex', alignItems: 'center', gap: 8 }}
         onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-      >
+        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
         <span style={{ fontSize: 14 }}>✕</span> Remove Connector
       </div>
     </div>
