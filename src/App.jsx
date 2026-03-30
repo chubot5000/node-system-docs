@@ -91,7 +91,7 @@ const defaultEdgeOptions = {
 
 const initialNodes = [
   makeCanvasNode(DEFAULT_W, DEFAULT_H),
-  { id: '1', type: 'titleNode', position: { x: 835, y: 500 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
+  { id: '1', type: 'titleNode', position: { x: 835, y: 500 }, data: { label: 'New Title', activeHandles: [], handleTypes: {} } },
 ]
 
 const initialEdges = []
@@ -246,7 +246,7 @@ function Flow() {
       data: {
         label,
         body: type === 'textNode' ? 'Double-click to edit this text content.' : undefined,
-        activeHandles: ['bottom-0'], handleTypes: {},
+        activeHandles: [], handleTypes: {},
       },
     }))
   }, [reactFlowInstance, setNodes])
@@ -535,7 +535,7 @@ function Flow() {
       data: {
         label,
         body: type === 'textNode' ? 'Double-click to edit this text content.' : undefined,
-        activeHandles: ['bottom-0'], handleTypes: {},
+        activeHandles: [], handleTypes: {},
       },
     }))
   }, [paneMenu, setNodes])
