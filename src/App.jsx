@@ -9,7 +9,6 @@ import {
   Background,
   BackgroundVariant,
   ConnectionMode,
-  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
@@ -19,6 +18,7 @@ import TextNode from './components/TextNode'
 import LogoNode from './components/LogoNode'
 import ImageNode from './components/ImageNode'
 import EdgeLabelModal from './components/EdgeLabelModal'
+import ContextMenu from './components/ContextMenu'
 
 export const ConnectorContext = createContext('plain')
 
@@ -57,6 +57,7 @@ function Flow() {
   const [selectedEdge, setSelectedEdge] = useState(null)
   const [edgeModalPos, setEdgeModalPos] = useState({ x: 0, y: 0 })
   const [activeConnectorType, setActiveConnectorType] = useState('plain')
+  const [contextMenu, setContextMenu] = useState(null)
 
   const onConnect = useCallback((params) => {
     setEdges((eds) => addEdge({ ...params, style: { stroke: '#747474', strokeWidth: 2 } }, eds))
@@ -106,15 +107,33 @@ function Flow() {
 
   const onPaneClick = useCallback(() => {
     setSelectedEdge(null)
+    setContextMenu(null)
   }, [])
 
-  // Delete selected nodes/edges on Backspace or Delete key
+  // Right-click on node
+  const onNodeContextMenu = useCallback((event, node) => {
+    event.preventDefault()
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor })
+  }, [])
+
+  const onDeleteNode = useCallback((nodeId) => {
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId))
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
+  }, [setNodes, setEdges])
+
+  const onFillChange = useCallback((nodeId, color) => {
+    setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, fillColor: color } } : n))
+  }, [setNodes])
+
+  const onStrokeChange = useCallback((nodeId, color) => {
+    setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, strokeColor: color } } : n))
+  }, [setNodes])
+
+  // Delete selected on key
   const onKeyDown = useCallback((event) => {
     if (event.key === 'Backspace' || event.key === 'Delete') {
-      // Don't delete if user is editing text
       const tag = event.target.tagName.toLowerCase()
       if (tag === 'input' || tag === 'textarea') return
-
       setNodes((nds) => nds.filter((n) => !n.selected))
       setEdges((eds) => eds.filter((e) => !e.selected))
     }
@@ -136,6 +155,7 @@ function Flow() {
             onDragOver={onDragOver}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
+            onNodeContextMenu={onNodeContextMenu}
             nodeTypes={nodeTypes}
             defaultEdgeOptions={defaultEdgeOptions}
             connectionMode={ConnectionMode.Loose}
@@ -147,7 +167,7 @@ function Flow() {
             style={{ background: '#F5F3F0' }}
           >
             <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#D5D0CC" />
-            <Controls />
+            <Controls position="top-right" />
           </ReactFlow>
         </div>
         {selectedEdge && (
@@ -161,6 +181,19 @@ function Flow() {
               onDelete={onDeleteEdge}
             />
           </>
+        )}
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            nodeId={contextMenu.nodeId}
+            currentFill={contextMenu.fill}
+            currentStroke={contextMenu.stroke}
+            onClose={() => setContextMenu(null)}
+            onDelete={onDeleteNode}
+            onFillChange={onFillChange}
+            onStrokeChange={onStrokeChange}
+          />
         )}
       </div>
     </ConnectorContext.Provider>

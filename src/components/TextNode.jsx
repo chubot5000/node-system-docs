@@ -17,7 +17,6 @@ function TextNode({ data }) {
     setActiveHandles((prev) => prev.includes(edge) ? prev : [...prev, edge])
     setHandleTypes((prev) => ({ ...prev, [edge]: activeConnectorType || 'plain' }))
   }, [activeConnectorType])
-
   const removeHandle = useCallback((edge) => {
     setActiveHandles((prev) => prev.filter((e) => e !== edge))
     setHandleTypes((prev) => { const n = { ...prev }; delete n[edge]; return n })
@@ -28,7 +27,7 @@ function TextNode({ data }) {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
-      style={{ width: 360, minHeight: 311, border: '2px solid #747474', borderRadius: 4.35, background: 'white', display: 'flex', flexDirection: 'column', padding: 24, position: 'relative' }}
+      style={{ width: 360, minHeight: 311, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', flexDirection: 'column', padding: 24, position: 'relative' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -40,10 +39,13 @@ function TextNode({ data }) {
           defaultValue={title}
           onBlur={(e) => { setEditingTitle(false); setTitle(e.target.value) }}
           onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-          className="text-lg font-bold text-[#747474] bg-transparent outline-none mb-4"
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474', background: 'transparent', outline: 'none', marginBottom: 16, border: 'none', fontFamily: 'Inter, sans-serif' }}
         />
       ) : (
-        <div onDoubleClick={() => setEditingTitle(true)} className="text-lg font-bold text-[#747474] mb-4 cursor-text">
+        <div
+          onDoubleClick={() => setEditingTitle(true)}
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474', marginBottom: 16, cursor: 'text' }}
+        >
           {title}
         </div>
       )}
@@ -53,11 +55,14 @@ function TextNode({ data }) {
           autoFocus
           defaultValue={body}
           onBlur={(e) => { setEditingBody(false); setBody(e.target.value) }}
-          className="text-sm text-[#747474] bg-transparent outline-none flex-1 resize-none leading-relaxed"
+          style={{ fontSize: 18, color: '#747474', background: 'transparent', outline: 'none', flex: 1, resize: 'none', lineHeight: 1.6, border: 'none', fontFamily: 'Inter, sans-serif' }}
           rows={8}
         />
       ) : (
-        <div onDoubleClick={() => setEditingBody(true)} className="text-sm text-[#747474] leading-relaxed cursor-text whitespace-pre-wrap">
+        <div
+          onDoubleClick={() => setEditingBody(true)}
+          style={{ fontSize: 18, color: '#747474', lineHeight: 1.6, cursor: 'text', whiteSpace: 'pre-wrap' }}
+        >
           {body}
         </div>
       )}

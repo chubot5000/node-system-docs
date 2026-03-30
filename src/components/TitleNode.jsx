@@ -15,7 +15,6 @@ function TitleNode({ data, id }) {
     setActiveHandles((prev) => prev.includes(edge) ? prev : [...prev, edge])
     setHandleTypes((prev) => ({ ...prev, [edge]: activeConnectorType || 'plain' }))
   }, [activeConnectorType])
-
   const removeHandle = useCallback((edge) => {
     setActiveHandles((prev) => prev.filter((e) => e !== edge))
     setHandleTypes((prev) => { const n = { ...prev }; delete n[edge]; return n })
@@ -26,7 +25,7 @@ function TitleNode({ data, id }) {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
-      style={{ width: 360, height: 100, border: '2px solid #747474', borderRadius: 4.35, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+      style={{ width: 360, height: 100, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -37,12 +36,12 @@ function TitleNode({ data, id }) {
           defaultValue={title}
           onBlur={(e) => { setEditing(false); setTitle(e.target.value) }}
           onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-          className="text-lg font-bold text-[#747474] text-center bg-transparent outline-none w-full px-4"
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', background: 'transparent', outline: 'none', width: '100%', padding: '0 16px', border: 'none', fontFamily: 'Inter, sans-serif' }}
         />
       ) : (
         <div
           onDoubleClick={() => setEditing(true)}
-          className="text-lg font-bold text-[#747474] text-center cursor-text select-none px-4 w-full"
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', cursor: 'text', userSelect: 'none', padding: '0 16px', width: '100%' }}
         >
           {title}
         </div>

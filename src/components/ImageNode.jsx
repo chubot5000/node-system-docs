@@ -36,7 +36,7 @@ function ImageNode({ data }) {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
-      style={{ width: 360, height: 311, border: '2px solid #747474', borderRadius: 4.35, background: 'white', display: 'flex', flexDirection: 'column', position: 'relative' }}
+      style={{ width: 360, height: 311, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', flexDirection: 'column', position: 'relative' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -49,10 +49,10 @@ function ImageNode({ data }) {
             defaultValue={title}
             onBlur={(e) => { setEditingTitle(false); setTitle(e.target.value) }}
             onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-            className="text-lg font-bold text-[#747474] bg-transparent outline-none"
+            style={{ fontSize: 23, fontWeight: 700, color: '#747474', background: 'transparent', outline: 'none', border: 'none', fontFamily: 'Inter, sans-serif' }}
           />
         ) : (
-          <div onDoubleClick={() => setEditingTitle(true)} className="text-lg font-bold text-[#747474] cursor-text">
+          <div onDoubleClick={() => setEditingTitle(true)} style={{ fontSize: 23, fontWeight: 700, color: '#747474', cursor: 'text' }}>
             {title}
           </div>
         )}

@@ -2,6 +2,8 @@ import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
 
 const positionMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
+// top/left = target, bottom/right = source (standard flow direction, Loose mode still allows any-to-any)
+const handleTypeMap = { top: 'target', bottom: 'source', left: 'target', right: 'source' }
 const allEdges = ['top', 'bottom', 'left', 'right']
 
 const addButtonPositions = {
@@ -18,42 +20,24 @@ const removeButtonOffsets = {
   right: { right: -30, top: '50%', transform: 'translateY(-50%)' },
 }
 
-// Connector type inner content
-const connectorContent = {
-  plain: null,
-  arrow: (
-    <svg width="14" height="10" viewBox="0 0 14 10" fill="none" style={{ pointerEvents: 'none' }}>
-      <path d="M2 5L10.5 5M10.5 5L7.5 2M10.5 5L7.5 8" stroke="#655343" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  ),
-  additive: <span style={{ fontSize: 16, fontWeight: 600, color: '#747474', pointerEvents: 'none', lineHeight: 1 }}>+</span>,
-  black: null,
-}
-
 export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, onRemoveHandle }) {
   return (
     <>
       {activeHandles.map((edge) => {
         const cType = handleTypes?.[edge] || 'plain'
         const isFilled = cType === 'black'
+        const cls = isFilled ? 'handle-black' : cType === 'arrow' ? 'handle-arrow' : cType === 'additive' ? 'handle-additive' : ''
         return (
           <Handle
             key={edge}
-            type="source"
+            type={handleTypeMap[edge]}
             position={positionMap[edge]}
             id={edge}
-            className={isFilled ? 'handle-black' : ''}
-          >
-            {connectorContent[cType] && (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                {connectorContent[cType]}
-              </div>
-            )}
-          </Handle>
+            className={cls}
+          />
         )
       })}
 
-      {/* Add handle buttons on hover */}
       {hovered && allEdges.filter((e) => !activeHandles.includes(e)).map((edge) => (
         <div
           key={`add-${edge}`}
@@ -67,7 +51,6 @@ export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, 
         >+</div>
       ))}
 
-      {/* Remove handle buttons on hover */}
       {hovered && activeHandles.map((edge) => (
         <div
           key={`rm-${edge}`}

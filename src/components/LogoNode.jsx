@@ -43,7 +43,7 @@ function LogoNode({ data }) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       onClick={handleClick}
-      style={{ width: 250, height: 250, background: '#655343', borderRadius: 5.6, border: '2px solid #655343', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
+      style={{ width: 250, height: 250, background: data.fillColor || '#655343', borderRadius: 5.6, border: `2px solid ${data.strokeColor || '#655343'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
