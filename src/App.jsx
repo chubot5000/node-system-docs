@@ -22,6 +22,7 @@ import ImageNode from './components/ImageNode'
 import EdgeLabelModal from './components/EdgeLabelModal'
 import ContextMenu from './components/ContextMenu'
 import HandleContextMenu from './components/HandleContextMenu'
+import PaneContextMenu from './components/PaneContextMenu'
 import { nextHandleId, countOnSide } from './utils/handleUtils'
 
 export const ConnectorContext = createContext('plain')
@@ -66,6 +67,7 @@ function Flow() {
   const [activeConnectorType, setActiveConnectorType] = useState('plain')
   const [contextMenu, setContextMenu] = useState(null)
   const [handleMenu, setHandleMenu] = useState(null)
+  const [paneMenu, setPaneMenu] = useState(null)
   const updateNodeInternals = useUpdateNodeInternals()
   const connectingFrom = useRef(null)
 
@@ -183,7 +185,26 @@ function Flow() {
     setSelectedEdge(null)
     setContextMenu(null)
     setHandleMenu(null)
+    setPaneMenu(null)
   }, [])
+
+  const onPaneContextMenu = useCallback((event) => {
+    event.preventDefault()
+    setPaneMenu({ x: event.clientX, y: event.clientY, flowPos: reactFlowInstance?.screenToFlowPosition({ x: event.clientX, y: event.clientY }) })
+  }, [reactFlowInstance])
+
+  const onPaneAddNode = useCallback((type) => {
+    if (!paneMenu?.flowPos) return
+    const label = type === 'largeTitleNode' ? 'Large Title' : type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : ''
+    setNodes((nds) => nds.concat({
+      id: getId(), type, position: paneMenu.flowPos,
+      data: {
+        label,
+        body: type === 'textNode' ? 'Double-click to edit this text content.' : undefined,
+        activeHandles: ['bottom-0'], handleTypes: {},
+      },
+    }))
+  }, [paneMenu, setNodes])
 
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault()
@@ -273,6 +294,7 @@ function Flow() {
             onDragOver={onDragOver}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
+            onPaneContextMenu={onPaneContextMenu}
             onNodeContextMenu={onNodeContextMenu}
             nodeTypes={nodeTypes}
             defaultEdgeOptions={defaultEdgeOptions}
@@ -306,6 +328,13 @@ function Flow() {
             currentFill={contextMenu.fill} currentStroke={contextMenu.stroke}
             onClose={() => setContextMenu(null)}
             onDelete={onDeleteNode} onFillChange={onFillChange} onStrokeChange={onStrokeChange}
+          />
+        )}
+        {paneMenu && (
+          <PaneContextMenu
+            x={paneMenu.x} y={paneMenu.y}
+            onSelect={onPaneAddNode}
+            onClose={() => setPaneMenu(null)}
           />
         )}
         {handleMenu && (
