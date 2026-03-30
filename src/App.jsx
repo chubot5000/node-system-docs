@@ -199,6 +199,147 @@ function Flow() {
     }))
   }, [reactFlowInstance, setNodes])
 
+  /* ── Snap & Bridge: auto-connect with additive (+) when dragged near another node ── */
+  const SNAP_THRESHOLD = 50  // px proximity to trigger snap
+  const BRIDGE_GAP = 30      // px gap between nodes (= connector size)
+
+  const onNodeDragStop = useCallback((event, draggedNode) => {
+    if (draggedNode.id === CANVAS_ID || !reactFlowInstance) return
+
+    const dNode = reactFlowInstance.getNode(draggedNode.id)
+    if (!dNode) return
+    const dW = dNode.measured?.width ?? 250
+    const dH = dNode.measured?.height ?? 83
+    const dX = dNode.position.x
+    const dY = dNode.position.y
+
+    // Check all other nodes for proximity
+    const allNodes = reactFlowInstance.getNodes()
+    for (const other of allNodes) {
+      if (other.id === CANVAS_ID || other.id === dNode.id) continue
+
+      const oW = other.measured?.width ?? 250
+      const oH = other.measured?.height ?? 83
+      const oX = other.position.x
+      const oY = other.position.y
+
+      // Check vertical overlap (nodes roughly aligned horizontally)
+      const vOverlap = Math.min(dY + dH, oY + oH) - Math.max(dY, oY)
+      // Check horizontal overlap (nodes roughly aligned vertically)
+      const hOverlap = Math.min(dX + dW, oX + oW) - Math.max(dX, oX)
+
+      let snapSide = null  // side of dragged node that faces the other
+      let newX = dX, newY = dY
+
+      if (vOverlap > Math.min(dH, oH) * 0.3) {
+        // Horizontal neighbors
+        const gapRight = oX - (dX + dW)   // dragged is LEFT of other
+        const gapLeft = dX - (oX + oW)    // dragged is RIGHT of other
+
+        if (gapRight >= -10 && gapRight <= SNAP_THRESHOLD) {
+          // Snap dragged node's right edge to other's left edge with gap
+          newX = oX - dW - BRIDGE_GAP
+          // Align vertical centers
+          newY = oY + oH / 2 - dH / 2
+          snapSide = 'right'  // dragged's right → other's left
+        } else if (gapLeft >= -10 && gapLeft <= SNAP_THRESHOLD) {
+          newX = oX + oW + BRIDGE_GAP
+          newY = oY + oH / 2 - dH / 2
+          snapSide = 'left'
+        }
+      }
+
+      if (!snapSide && hOverlap > Math.min(dW, oW) * 0.3) {
+        // Vertical neighbors
+        const gapBelow = oY - (dY + dH)
+        const gapAbove = dY - (oY + oH)
+
+        if (gapBelow >= -10 && gapBelow <= SNAP_THRESHOLD) {
+          newY = oY - dH - BRIDGE_GAP
+          newX = oX + oW / 2 - dW / 2
+          snapSide = 'bottom'
+        } else if (gapAbove >= -10 && gapAbove <= SNAP_THRESHOLD) {
+          newY = oY + oH + BRIDGE_GAP
+          newX = oX + oW / 2 - dW / 2
+          snapSide = 'top'
+        }
+      }
+
+      if (!snapSide) continue
+
+      const otherSide = { right: 'left', left: 'right', bottom: 'top', top: 'bottom' }[snapSide]
+      const maxD = dNode.type === 'titleNode' ? 1 : 3
+      const maxO = other.type === 'titleNode' ? 1 : 3
+
+      // Check if there's already an edge between these two on these sides
+      const existingEdge = edges.find((e) =>
+        (e.source === dNode.id && e.target === other.id) ||
+        (e.source === other.id && e.target === dNode.id)
+      )
+      if (existingEdge) {
+        // Still snap position even if already connected
+        setNodes((nds) => nds.map((n) => n.id === dNode.id ? { ...n, position: { x: newX, y: newY } } : n))
+        break
+      }
+
+      // Ensure handles exist on both nodes
+      setNodes((nds) => nds.map((n) => {
+        if (n.id === dNode.id) {
+          const ah = [...(n.data.activeHandles || [])]
+          const ht = { ...(n.data.handleTypes || {}) }
+          const sideCount = countOnSide(snapSide, ah)
+          if (sideCount >= maxD) return { ...n, position: { x: newX, y: newY } }
+          const hId = nextHandleId(snapSide, ah)
+          if (!hId) return { ...n, position: { x: newX, y: newY } }
+          ah.push(hId)
+          ht[hId] = 'additive'
+          return { ...n, position: { x: newX, y: newY }, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
+        }
+        if (n.id === other.id) {
+          const ah = [...(n.data.activeHandles || [])]
+          const ht = { ...(n.data.handleTypes || {}) }
+          const sideCount = countOnSide(otherSide, ah)
+          if (sideCount >= maxO) return n
+          const hId = nextHandleId(otherSide, ah)
+          if (!hId) return n
+          ah.push(hId)
+          ht[hId] = 'additive'
+          return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
+        }
+        return n
+      }))
+
+      // Create edge between the new handles after state update
+      setTimeout(() => {
+        const updatedDragged = reactFlowInstance.getNode(dNode.id)
+        const updatedOther = reactFlowInstance.getNode(other.id)
+        if (!updatedDragged || !updatedOther) return
+
+        updateNodeInternals(dNode.id)
+        updateNodeInternals(other.id)
+
+        // Find the last additive handle on each side
+        const dHandles = updatedDragged.data.activeHandles || []
+        const oHandles = updatedOther.data.activeHandles || []
+        const srcHandle = [...dHandles].reverse().find((h) => h.startsWith(snapSide + '-'))
+        const tgtHandle = [...oHandles].reverse().find((h) => h.startsWith(otherSide + '-'))
+
+        if (srcHandle && tgtHandle) {
+          setEdges((eds) => addEdge({
+            source: dNode.id,
+            sourceHandle: srcHandle,
+            target: other.id,
+            targetHandle: `${tgtHandle}-tgt`,
+            style: { stroke: '#747474', strokeWidth: 2 },
+            labelBgPadding: [16, 10],
+          }, eds))
+        }
+      }, 50)
+
+      break  // only snap to one neighbor
+    }
+  }, [reactFlowInstance, edges, setNodes, setEdges, updateNodeInternals])
+
   const onEdgeClick = useCallback((event, edge) => {
     event.stopPropagation()
     setSelectedEdge(edge)
@@ -437,6 +578,7 @@ function Flow() {
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
+            onNodeDragStop={onNodeDragStop}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
             onPaneContextMenu={onPaneContextMenu}
