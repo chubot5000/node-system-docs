@@ -2,7 +2,7 @@ import { memo, useState, useCallback } from 'react'
 import { toPng } from 'html-to-image'
 import { getViewportForBounds, useReactFlow } from '@xyflow/react'
 import { generateVectorSvg } from '../utils/svgExport'
-import { Heading1, Heading2, Heading3, AlignLeft, Hexagon, Image } from 'lucide-react'
+import { Heading1, Heading2, Heading3, AlignLeft, Hexagon, Image, ImagePlus } from 'lucide-react'
 
 const resolutions = [
   { label: 'HD (1920×1080)', w: 1920, h: 1080 },
@@ -19,7 +19,7 @@ export const nodeTypeList = [
   { type: 'miniTitleNode', label: 'Mini Title', Icon: Heading3 },
   { type: 'textNode', label: 'Text', Icon: AlignLeft },
   { type: 'logoNode', label: 'Logo', Icon: Hexagon },
-  { type: 'imageNode', label: 'Image', Icon: Image },
+  { type: 'imageNode', label: 'Image', Icon: ImagePlus },
   { type: 'smallImageNode', label: 'Small Image', Icon: Image },
 ]
 
