@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react'
+import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
 
 const positionMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
@@ -12,14 +12,14 @@ const addButtonPositions = {
 }
 
 const removeButtonOffsets = {
-  top: { top: -28, left: '50%', transform: 'translateX(-50%)' },
-  bottom: { bottom: -28, left: '50%', transform: 'translateX(-50%)' },
-  left: { left: -28, top: '50%', transform: 'translateY(-50%)' },
-  right: { right: -28, top: '50%', transform: 'translateY(-50%)' },
+  top: { top: -30, left: '50%', transform: 'translateX(-50%)' },
+  bottom: { bottom: -30, left: '50%', transform: 'translateX(-50%)' },
+  left: { left: -30, top: '50%', transform: 'translateY(-50%)' },
+  right: { right: -30, top: '50%', transform: 'translateY(-50%)' },
 }
 
-// Connector type visuals rendered inside the handle via CSS overlay
-const connectorIcons = {
+// Connector type inner content
+const connectorContent = {
   plain: null,
   arrow: (
     <svg width="14" height="10" viewBox="0 0 14 10" fill="none" style={{ pointerEvents: 'none' }}>
@@ -37,37 +37,23 @@ export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, 
         const cType = handleTypes?.[edge] || 'plain'
         const isFilled = cType === 'black'
         return (
-          <div key={edge} style={{ position: 'relative' }}>
-            <Handle
-              type="source"
-              position={positionMap[edge]}
-              id={`${edge}-source`}
-              className={isFilled ? 'handle-black' : cType === 'arrow' ? 'handle-arrow' : cType === 'additive' ? 'handle-additive' : ''}
-            />
-            <Handle
-              type="target"
-              position={positionMap[edge]}
-              id={`${edge}-target`}
-              className={isFilled ? 'handle-black' : cType === 'arrow' ? 'handle-arrow' : cType === 'additive' ? 'handle-additive' : ''}
-            />
-            {/* Icon overlay for connector type */}
-            {connectorIcons[cType] && (
-              <div
-                style={{
-                  position: 'absolute',
-                  ...getHandleCenterStyle(edge),
-                  width: 30, height: 30,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  pointerEvents: 'none',
-                  zIndex: 5,
-                }}
-              >
-                {connectorIcons[cType]}
+          <Handle
+            key={edge}
+            type="source"
+            position={positionMap[edge]}
+            id={edge}
+            className={isFilled ? 'handle-black' : ''}
+          >
+            {connectorContent[cType] && (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                {connectorContent[cType]}
               </div>
             )}
-          </div>
+          </Handle>
         )
       })}
+
+      {/* Add handle buttons on hover */}
       {hovered && allEdges.filter((e) => !activeHandles.includes(e)).map((edge) => (
         <div
           key={`add-${edge}`}
@@ -80,6 +66,8 @@ export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, 
           }}
         >+</div>
       ))}
+
+      {/* Remove handle buttons on hover */}
       {hovered && activeHandles.map((edge) => (
         <div
           key={`rm-${edge}`}
@@ -94,16 +82,6 @@ export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, 
       ))}
     </>
   )
-}
-
-function getHandleCenterStyle(edge) {
-  switch (edge) {
-    case 'top': return { top: -15, left: '50%', transform: 'translateX(-50%)' }
-    case 'bottom': return { bottom: -15, left: '50%', transform: 'translateX(-50%)' }
-    case 'left': return { left: -15, top: '50%', transform: 'translateY(-50%)' }
-    case 'right': return { right: -15, top: '50%', transform: 'translateY(-50%)' }
-    default: return {}
-  }
 }
 
 export { allEdges }

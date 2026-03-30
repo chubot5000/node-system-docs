@@ -43,7 +43,7 @@ const initialNodes = [
 ]
 
 const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom-source', targetHandle: 'top-target', label: 'OWNS' },
+  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom', targetHandle: 'top', label: 'OWNS' },
 ]
 
 let id = 5

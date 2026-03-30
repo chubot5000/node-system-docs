@@ -23,6 +23,7 @@ body {
   stroke-width: 2px !important;
 }
 
+/* Connector squares: 30x30, white fill, #747474 border, square corners */
 .react-flow__handle {
   width: 30px !important;
   height: 30px !important;
@@ -31,20 +32,9 @@ body {
   border-radius: 1.4px !important;
 }
 
-/* Stacked source+target handles on same edge — make them overlap exactly */
-.react-flow__handle-top.react-flow__handle-target,
-.react-flow__handle-top.react-flow__handle-source {
-  z-index: 3;
-}
-.react-flow__handle-bottom.react-flow__handle-target,
-.react-flow__handle-bottom.react-flow__handle-source {
-  z-index: 3;
-}
-
-/* Connector type: black filled */
+/* Black connector variant */
 .react-flow__handle.handle-black {
   background: black !important;
-  border-color: #747474 !important;
 }
 
 .react-flow__minimap { display: none; }
@@ -68,7 +58,7 @@ body {
   rx: 4.625;
 }
 
-/* Focus outline removal on wrapper */
+/* Focus outline removal */
 .flex.h-screen.w-screen:focus {
   outline: none;
 }
