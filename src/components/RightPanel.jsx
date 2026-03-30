@@ -2,7 +2,7 @@ import { memo, useState, useCallback } from 'react'
 import { toPng } from 'html-to-image'
 import { getViewportForBounds, useReactFlow } from '@xyflow/react'
 import { generateVectorSvg } from '../utils/svgExport'
-import { Heading1, Heading2, AlignLeft, Hexagon, Image } from 'lucide-react'
+import { Heading1, Heading2, Heading3, AlignLeft, Hexagon, Image } from 'lucide-react'
 
 const resolutions = [
   { label: 'HD (1920×1080)', w: 1920, h: 1080 },
@@ -16,6 +16,7 @@ const resolutions = [
 export const nodeTypeList = [
   { type: 'largeTitleNode', label: 'Large Title', Icon: Heading1 },
   { type: 'titleNode', label: 'Small Title', Icon: Heading2 },
+  { type: 'miniTitleNode', label: 'Mini Title', Icon: Heading3 },
   { type: 'textNode', label: 'Text', Icon: AlignLeft },
   { type: 'logoNode', label: 'Logo', Icon: Hexagon },
   { type: 'imageNode', label: 'Image', Icon: Image },
@@ -46,7 +47,18 @@ function Section({ title, defaultOpen = true, children }) {
   )
 }
 
-function RightPanel({ canvasW, canvasH, onCanvasChange }) {
+function HexColorInput({ value, onChange, label }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
+        style={{ width: 28, height: 28, border: '1px solid #E0DCDA', borderRadius: 4, padding: 0, cursor: 'pointer', background: 'none' }} />
+      <input type="text" value={value} onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) onChange(v) }}
+        style={{ flex: 1, padding: '4px 8px', fontSize: 12, color: '#655343', border: '1px solid #E0DCDA', borderRadius: 4, fontFamily: 'monospace', textTransform: 'uppercase', outline: 'none' }} />
+    </div>
+  )
+}
+
+function RightPanel({ canvasW, canvasH, onCanvasChange, canvasBg, onCanvasBgChange, selectedNodes, onFillChange, onStrokeChange }) {
   const [format, setFormat] = useState('png')
   const [scale, setScale] = useState(1)
   const [exporting, setExporting] = useState(false)
@@ -168,7 +180,7 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 10, color: '#B0AAA5', marginTop: 6 }}>Drag to canvas · Right-click canvas to add</div>
+          {/* hint removed */}
         </Section>
 
         {/* Canvas */}
@@ -191,6 +203,34 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
           </select>
           <div style={{ fontSize: 10, color: '#B0AAA5', marginTop: 4 }}>{canvasW} × {canvasH}px</div>
         </Section>
+
+        {/* Background */}
+        <Section title="Background">
+          <HexColorInput value={canvasBg} onChange={onCanvasBgChange} />
+        </Section>
+
+        {/* Appearance — only when node(s) selected */}
+        {selectedNodes.length > 0 && (
+          <Section title="Appearance">
+            <div style={{ fontSize: 11, color: '#999', marginBottom: 6, fontWeight: 500 }}>
+              {selectedNodes.length === 1 ? selectedNodes[0].data.label || 'Node' : `${selectedNodes.length} nodes`}
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 10, color: '#B0AAA5', marginBottom: 4 }}>Fill</div>
+              <HexColorInput
+                value={selectedNodes[0].data.fillColor || '#FFFFFF'}
+                onChange={(c) => selectedNodes.forEach(n => onFillChange(n.id, c))}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: '#B0AAA5', marginBottom: 4 }}>Stroke</div>
+              <HexColorInput
+                value={selectedNodes[0].data.strokeColor || '#747474'}
+                onChange={(c) => selectedNodes.forEach(n => onStrokeChange(n.id, c))}
+              />
+            </div>
+          </Section>
+        )}
 
         {/* Export */}
         <Section title="Export">

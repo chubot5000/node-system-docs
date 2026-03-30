@@ -105,6 +105,17 @@ body {
   box-shadow: none !important;
 }
 
+/* Selected node indicator — subtle blue outline */
+.react-flow__node.selected:not([data-id="__canvas__"]) {
+  outline: 1.5px solid rgba(101, 83, 67, 0.35) !important;
+  outline-offset: 4px !important;
+  border-radius: 4px;
+}
+.react-flow__node:focus:not([data-id="__canvas__"]) {
+  outline: 1.5px solid rgba(101, 83, 67, 0.35) !important;
+  outline-offset: 4px !important;
+}
+
 .flex.h-screen.w-screen:focus {
   outline: none;
 }

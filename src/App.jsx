@@ -1,4 +1,4 @@
-import { createContext, useCallback, useRef, useState } from 'react'
+import { createContext, useCallback, useEffect, useRef, useState } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -15,6 +15,7 @@ import '@xyflow/react/dist/style.css'
 
 import RightPanel from './components/RightPanel'
 import CanvasFrame from './components/CanvasFrame'
+import MiniTitleNode from './components/MiniTitleNode'
 import LargeTitleNode from './components/LargeTitleNode'
 import TitleNode from './components/TitleNode'
 import TextNode from './components/TextNode'
@@ -30,6 +31,7 @@ export const ConnectorContext = createContext('plain')
 
 const nodeTypes = {
   canvasFrame: CanvasFrame,
+  miniTitleNode: MiniTitleNode,
   largeTitleNode: LargeTitleNode,
   titleNode: TitleNode,
   textNode: TextNode,
@@ -85,6 +87,13 @@ function Flow() {
   const [paneMenu, setPaneMenu] = useState(null)
   const [canvasW, setCanvasW] = useState(DEFAULT_W)
   const [canvasH, setCanvasH] = useState(DEFAULT_H)
+  const [canvasBg, setCanvasBg] = useState('#FFFFFF')
+  const selectedNodes = nodes.filter(n => n.selected && n.id !== CANVAS_ID)
+
+  // Sync canvas bg color to canvas frame node
+  useEffect(() => {
+    setNodes((nds) => nds.map((n) => n.id === CANVAS_ID ? { ...n, data: { ...n.data, bg: canvasBg } } : n))
+  }, [canvasBg, setNodes])
   const updateNodeInternals = useUpdateNodeInternals()
   const connectingFrom = useRef(null)
 
@@ -179,7 +188,7 @@ function Flow() {
     const type = event.dataTransfer.getData('application/reactflow')
     if (!type || !reactFlowInstance) return
     const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY })
-    const label = type === 'largeTitleNode' ? 'Large Title' : type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : ''
+    const label = type === 'miniTitleNode' ? 'Mini' : type === 'largeTitleNode' ? 'Large Title' : type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : ''
     setNodes((nds) => nds.concat({
       id: getId(), type, position,
       data: {
@@ -218,7 +227,7 @@ function Flow() {
 
   const onPaneAddNode = useCallback((type) => {
     if (!paneMenu?.flowPos) return
-    const label = type === 'largeTitleNode' ? 'Large Title' : type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : ''
+    const label = type === 'miniTitleNode' ? 'Mini' : type === 'largeTitleNode' ? 'Large Title' : type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : ''
     setNodes((nds) => nds.concat({
       id: getId(), type, position: paneMenu.flowPos,
       data: {
@@ -233,7 +242,7 @@ function Flow() {
     setCanvasW(w)
     setCanvasH(h)
     setNodes((nds) => nds.map((n) => n.id === CANVAS_ID
-      ? { ...n, data: { ...n.data, width: w, height: h } }
+      ? { ...n, data: { ...n.data, width: w, height: h, bg: canvasBg } }
       : n
     ))
     // Fit view to new canvas bounds after a tick
@@ -253,6 +262,15 @@ function Flow() {
     setHandleMenu(null)
     setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor })
   }, [reactFlowInstance])
+
+  const onRemoveAllHandles = useCallback((nodeId) => {
+    setNodes((nds) => nds.map((n) => {
+      if (n.id !== nodeId) return n
+      return { ...n, data: { ...n.data, activeHandles: [], handleTypes: {} } }
+    }))
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
+    setTimeout(() => updateNodeInternals(nodeId), 0)
+  }, [setNodes, setEdges, updateNodeInternals])
 
   const onDuplicateNode = useCallback((nodeId) => {
     setNodes((nds) => {
@@ -368,7 +386,9 @@ function Flow() {
             <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#D5D0CC" />
           </ReactFlow>
         </div>
-        <RightPanel canvasW={canvasW} canvasH={canvasH} onCanvasChange={onCanvasChange} />
+        <RightPanel canvasW={canvasW} canvasH={canvasH} onCanvasChange={onCanvasChange}
+          canvasBg={canvasBg} onCanvasBgChange={setCanvasBg}
+          selectedNodes={selectedNodes} onFillChange={onFillChange} onStrokeChange={onStrokeChange} />
         {selectedEdge && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setSelectedEdge(null)} />
@@ -387,6 +407,7 @@ function Flow() {
             currentFill={contextMenu.fill} currentStroke={contextMenu.stroke}
             onClose={() => setContextMenu(null)}
             onDelete={onDeleteNode} onDuplicate={onDuplicateNode}
+            onRemoveAllHandles={onRemoveAllHandles}
             onFillChange={onFillChange} onStrokeChange={onStrokeChange}
           />
         )}

@@ -4,6 +4,7 @@ const CANVAS_ID = '__canvas__'
 
 // Node type → dimensions
 const nodeDims = {
+  miniTitleNode: { w: 250, h: 41.67 },
   titleNode: { w: 250, h: 83.33 },
   largeTitleNode: { w: 250, h: 250 },
   textNode: { w: 250, h: 250 },
@@ -137,7 +138,10 @@ function renderNode(node) {
   svg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`
 
   // Content based on type
-  if (type === 'titleNode' || type === 'largeTitleNode') {
+  if (type === 'miniTitleNode') {
+    const label = escXml(data.label || 'Mini')
+    svg += `<text x="${x + w / 2}" y="${y + h / 2 + 5}" text-anchor="middle" fill="#747474" font-size="16" font-weight="700">${label}</text>`
+  } else if (type === 'titleNode' || type === 'largeTitleNode') {
     const label = escXml(data.label || 'Title')
     svg += `<text x="${x + w / 2}" y="${y + h / 2 + 8}" text-anchor="middle" fill="#747474" font-size="23" font-weight="700">${label}</text>`
   } else if (type === 'textNode') {
