@@ -16,6 +16,7 @@ import '@xyflow/react/dist/style.css'
 import RightPanel from './components/RightPanel'
 import CanvasFrame from './components/CanvasFrame'
 import MiniTitleNode from './components/MiniTitleNode'
+import SmallImageNode from './components/SmallImageNode'
 import LargeTitleNode from './components/LargeTitleNode'
 import TitleNode from './components/TitleNode'
 import TextNode from './components/TextNode'
@@ -59,6 +60,7 @@ const nodeTypes = {
   textNode: TextNode,
   logoNode: LogoNode,
   imageNode: ImageNode,
+  smallImageNode: SmallImageNode,
 }
 
 const CANVAS_ID = '__canvas__'

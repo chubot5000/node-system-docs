@@ -20,6 +20,7 @@ export const nodeTypeList = [
   { type: 'textNode', label: 'Text', Icon: AlignLeft },
   { type: 'logoNode', label: 'Logo', Icon: Hexagon },
   { type: 'imageNode', label: 'Image', Icon: Image },
+  { type: 'smallImageNode', label: 'Small Image', Icon: Image },
 ]
 
 const scales = [1, 2, 4]
