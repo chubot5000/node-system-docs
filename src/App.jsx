@@ -86,27 +86,29 @@ function Flow() {
     const targetNodeId = nodeEl.getAttribute('data-id')
     if (!targetNodeId || targetNodeId === from.nodeId) return
 
-    const targetNode = nodes.find((n) => n.id === targetNodeId)
+    // Use React Flow's internal node data for accurate position and dimensions
+    const targetNode = reactFlowInstance.getNode(targetNodeId)
     if (!targetNode) return
 
     const maxPerSide = targetNode.type === 'titleNode' ? 1 : 3
 
     const flowPos = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY })
-    const zoom = reactFlowInstance.getZoom()
-    const nodeRect = {
-      x: targetNode.position.x,
-      y: targetNode.position.y,
-      w: nodeEl.offsetWidth / zoom,
-      h: nodeEl.offsetHeight / zoom,
-    }
-    const cx = nodeRect.x + nodeRect.w / 2
-    const cy = nodeRect.y + nodeRect.h / 2
+
+    // measured gives actual rendered size; positionAbsolute accounts for any parent offsets
+    const nodeW = targetNode.measured?.width ?? nodeEl.offsetWidth
+    const nodeH = targetNode.measured?.height ?? nodeEl.offsetHeight
+    const nodeX = targetNode.positionAbsolute?.x ?? targetNode.position.x
+    const nodeY = targetNode.positionAbsolute?.y ?? targetNode.position.y
+
+    const cx = nodeX + nodeW / 2
+    const cy = nodeY + nodeH / 2
     const dx = flowPos.x - cx
     const dy = flowPos.y - cy
 
+    // Normalize by half-dimensions so side detection works for non-square nodes
     let side
-    const ratioX = Math.abs(dx) / (nodeRect.w / 2)
-    const ratioY = Math.abs(dy) / (nodeRect.h / 2)
+    const ratioX = Math.abs(dx) / (nodeW / 2)
+    const ratioY = Math.abs(dy) / (nodeH / 2)
     if (ratioX > ratioY) {
       side = dx > 0 ? 'right' : 'left'
     } else {
@@ -143,7 +145,7 @@ function Flow() {
         }, eds))
       })
     })
-  }, [reactFlowInstance, nodes, setNodes, setEdges, activeConnectorType, updateNodeInternals])
+  }, [reactFlowInstance, setNodes, setEdges, activeConnectorType, updateNodeInternals])
 
   const onDragOver = useCallback((event) => {
     event.preventDefault()
