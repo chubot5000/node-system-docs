@@ -6,7 +6,7 @@ import EditableText from './EditableText'
 function SmallImageNode({ data, id }) {
   const { setNodes } = useReactFlow()
   const fileRef = useRef()
-  const imgSize = 105
+  const imgSize = 100
   const updateField = useCallback((field, val) => {
     setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, [field]: val } } : n))
   }, [id, setNodes])

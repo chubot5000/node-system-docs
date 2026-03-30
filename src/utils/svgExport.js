@@ -9,7 +9,7 @@ const nodeDims = {
   textNode: { w: 250, h: 250 },
   logoNode: { w: 250, h: 250 },
   imageNode: { w: 250, h: 250 },
-  smallImageNode: { w: 360, h: 105 },
+  smallImageNode: { w: 360, h: 100 },
 }
 
 function getHandleAbsPos(handleId, allHandles, nx, ny, nw, nh) {
@@ -131,7 +131,7 @@ function renderNode(node) {
 
   if (type === 'smallImageNode') {
     // Left square image area
-    const imgSize = 105
+    const imgSize = 100
     svg += `<rect x="${x}" y="${y}" width="${imgSize}" height="${h}" rx="3" fill="#DBD0C6"/>`
     svg += `<line x1="${x + imgSize}" y1="${y}" x2="${x + imgSize}" y2="${y + h}" stroke="${stroke}" stroke-width="2"/>`
     // Image icon placeholder
