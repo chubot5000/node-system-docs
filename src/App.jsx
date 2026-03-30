@@ -400,7 +400,7 @@ function Flow() {
           position: { x: cx, y: cy },
           data: { bridgeId: b.id },
           draggable: false,
-          selectable: false,
+          selectable: true,
           focusable: false,
           deletable: false,
           connectable: false,
@@ -587,7 +587,12 @@ function Flow() {
 
     // Delete / Backspace
     if (event.key === 'Backspace' || event.key === 'Delete') {
-      setNodes((nds) => nds.filter((n) => !n.selected || isSpecialNode(n)))
+      // Remove selected bridges
+      const selectedBridgeIds = nodes.filter((n) => n.selected && n.id.startsWith('bridge-')).map((n) => n.id)
+      if (selectedBridgeIds.length) {
+        setBridges((prev) => prev.filter((b) => !selectedBridgeIds.includes(b.id)))
+      }
+      setNodes((nds) => nds.filter((n) => !n.selected || n.id === CANVAS_ID))
       setEdges((eds) => eds.filter((e) => !e.selected))
       return
     }

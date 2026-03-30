@@ -103,10 +103,15 @@ body {
   padding: 0 !important;
   border: none !important;
   box-shadow: none !important;
-  /* pointer-events enabled for right-click context menu */
+  cursor: pointer;
 }
 .react-flow__node[data-id="__canvas__"].selected,
 .react-flow__node[data-id="__canvas__"]:focus,
+.react-flow__node[data-id^="bridge-"].selected .bridge-connector-visual {
+  outline: 1.5px solid rgba(101, 83, 67, 0.5);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
 .react-flow__node[data-id^="bridge-"].selected,
 .react-flow__node[data-id^="bridge-"]:focus {
   outline: none !important;
