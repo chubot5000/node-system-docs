@@ -1,0 +1,52 @@
+import { memo, useState, useCallback, useRef } from 'react'
+import { Handle, Position } from '@xyflow/react'
+import { motion } from 'framer-motion'
+
+const defaultLogo = (
+  <svg width="120" height="120" viewBox="0 0 250 250" fill="none">
+    <path d="M126.365 58.1094L133.142 62.126L139.916 66.1436L146.693 70.1582L153.47 74.1748L160.247 78.1924L167.023 82.209L173.798 86.2236L180.574 90.2412L187.352 94.2578L194.128 98.2725L200.437 102.011L196.674 107.279L192.595 112.987L184.437 124.409L180.626 129.745L174.246 125.963L167.469 121.945L160.692 117.932L153.915 113.914L147.141 109.896L140.364 105.883L133.587 101.865L126.811 97.8486L125.013 96.7822L124.758 96.6309L124.503 96.7822L122.705 97.8486L115.929 101.865L109.151 105.883L102.375 109.896H102.374L95.6006 113.914L88.8232 117.932L82.0469 121.945L75.2695 125.963L68.8887 129.745L65.0791 124.409H65.0781L56.9209 112.987H56.9199L52.8418 107.279L49.0781 102.011L55.3867 98.2715L62.1641 94.2578L68.9414 90.2412L75.7178 86.2236L82.4922 82.209L89.2686 78.1924L96.0459 74.1748L102.822 70.1582L109.6 66.1436L116.374 62.126L123.15 58.1094L124.758 57.1572L126.365 58.1094Z" fill="white" stroke="rgba(255,255,255,0.3)"/>
+    <path d="M129.001 108.437L135.778 112.451L142.555 116.469L149.332 120.485L156.105 124.5L162.883 128.517L169.66 132.534L175.968 136.271L164.048 152.96L159.972 158.668L156.159 164.005L149.777 160.222L143 156.207L136.224 152.19L129.446 148.173L125.016 145.549L124.761 145.397L124.506 145.549L120.075 148.173L113.298 152.19L106.521 156.207L99.7451 160.222H99.7441L93.3623 164.005L89.5508 158.668L85.4746 152.96L73.5537 136.271L79.8613 132.534H79.8623L86.6387 128.517L93.416 124.5L100.189 120.485L106.967 116.469L113.743 112.451L120.521 108.437L124.761 105.92L129.001 108.437Z" fill="white" stroke="rgba(255,255,255,0.3)"/>
+    <path d="M124.859 154.743V154.744L131.634 158.761L138.41 162.775L145.188 166.792L151.495 170.531L147.733 175.8L143.654 181.508L139.575 187.218V187.219L135.766 192.555L129.384 188.772L125.015 186.184L124.76 186.033L124.505 186.184L120.137 188.772H120.136L113.754 192.555L109.945 187.219V187.218L105.866 181.508H105.865L101.787 175.8L98.0234 170.531L104.333 166.792L111.109 162.775L117.887 158.761L124.66 154.744L124.659 154.743L124.76 154.685L124.859 154.743Z" fill="white" stroke="rgba(255,255,255,0.3)"/>
+  </svg>
+)
+
+function LogoNode({ data }) {
+  const [logoSrc, setLogoSrc] = useState(data.logoSrc || null)
+  const fileRef = useRef()
+
+  const handleClick = useCallback(() => {
+    fileRef.current?.click()
+  }, [])
+
+  const handleFile = useCallback((e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (ev) => setLogoSrc(ev.target.result)
+      reader.readAsDataURL(file)
+    }
+  }, [])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      onClick={handleClick}
+      style={{ width: 250, height: 250, background: '#655343', borderRadius: 5.6, border: '1px solid #655343', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+    >
+      <Handle type="target" position={Position.Top} id="top" />
+      <Handle type="source" position={Position.Bottom} id="bottom" />
+      <Handle type="target" position={Position.Left} id="left" />
+      <Handle type="source" position={Position.Right} id="right" />
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+      {logoSrc ? (
+        <img src={logoSrc} alt="Logo" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />
+      ) : (
+        defaultLogo
+      )}
+    </motion.div>
+  )
+}
+
+export default memo(LogoNode)
