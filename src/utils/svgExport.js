@@ -130,16 +130,18 @@ function renderNode(node) {
   svg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`
 
   if (type === 'smallImageNode') {
-    // Left square image area
     const imgSize = 100
     svg += `<rect x="${x}" y="${y}" width="${imgSize}" height="${h}" rx="3" fill="#DBD0C6"/>`
     svg += `<line x1="${x + imgSize}" y1="${y}" x2="${x + imgSize}" y2="${y + h}" stroke="${stroke}" stroke-width="2"/>`
-    // Image icon placeholder
-    svg += `<g transform="translate(${x + imgSize / 2 - 12},${y + h / 2 - 12})">
-      <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#A99482" stroke-width="1.5"/>
-      <circle cx="8.5" cy="8.5" r="1.5" fill="#A99482"/>
-      <path d="M21 15l-5-5L5 21" fill="none" stroke="#A99482" stroke-width="1.5"/>
-    </g>`
+    if (data.imageSrc) {
+      svg += `<image x="${x}" y="${y}" width="${imgSize}" height="${h}" href="${escXml(data.imageSrc)}" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 3px)"/>`
+    } else {
+      svg += `<g transform="translate(${x + imgSize / 2 - 12},${y + h / 2 - 12})">
+        <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#A99482" stroke-width="1.5"/>
+        <circle cx="8.5" cy="8.5" r="1.5" fill="#A99482"/>
+        <path d="M21 15l-5-5L5 21" fill="none" stroke="#A99482" stroke-width="1.5"/>
+      </g>`
+    }
     // Title on right
     const label = escXml(data.label || '')
     if (label) {
