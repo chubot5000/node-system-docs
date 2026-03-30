@@ -1,8 +1,10 @@
 import { memo, useRef, useEffect } from 'react'
 import { nodeTypeList } from './RightPanel'
+import { useSmartPosition } from '../utils/useSmartPosition'
 
 function PaneContextMenu({ x, y, onSelect, onClose }) {
   const ref = useRef()
+  const pos = useSmartPosition(ref, x, y)
 
   useEffect(() => {
     const handler = (e) => {
@@ -16,7 +18,7 @@ function PaneContextMenu({ x, y, onSelect, onClose }) {
     <div
       ref={ref}
       style={{
-        position: 'fixed', left: x, top: y, zIndex: 100,
+        position: 'fixed', left: pos.left, top: pos.top, zIndex: 100,
         background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
         boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 180, padding: '6px 0',
         fontFamily: 'SwissNow, Inter, sans-serif',
