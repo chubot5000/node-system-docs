@@ -12,10 +12,10 @@ function MiniTitleNode({ data, id }) {
         <input autoFocus defaultValue={title}
           onBlur={(e) => { setEditing(false); setTitle(e.target.value) }}
           onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-          style={{ fontSize: 16, fontWeight: 700, color: '#747474', textAlign: 'center', background: 'transparent', outline: 'none', width: '100%', padding: '0 12px', border: 'none' }} />
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', background: 'transparent', outline: 'none', width: '100%', padding: '0 12px', border: 'none' }} />
       ) : (
         <div onDoubleClick={() => setEditing(true)}
-          style={{ fontSize: 16, fontWeight: 700, color: '#747474', textAlign: 'center', cursor: 'text', padding: '0 12px', width: '100%' }}>
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', cursor: 'text', padding: '0 12px', width: '100%' }}>
           {title}
         </div>
       )}

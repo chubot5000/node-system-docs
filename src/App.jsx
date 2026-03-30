@@ -71,7 +71,7 @@ const makeCanvasNode = (w, h) => ({
 })
 
 const defaultEdgeOptions = {
-  type: 'default',
+  type: 'straight',
   style: { stroke: '#747474', strokeWidth: 2 },
   animated: false,
   labelBgPadding: [16, 10],
