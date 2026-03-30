@@ -23,15 +23,24 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
     }
   }
 
-  /* Ghost mousedown: create handle, then trigger connection drag from it */
-  const onGhostMouseDown = useCallback((e, side) => {
+  /* Ghost pointerdown: create handle, then trigger connection drag from it.
+     React Flow uses pointer events for node dragging — we must intercept
+     pointerdown (not just mousedown) and stop it from reaching the node. */
+  const onGhostPointerDown = useCallback((e, side) => {
+    // Stop both pointer and mouse propagation to prevent node drag
     e.stopPropagation()
     e.preventDefault()
+    // Also capture pointer so the node never sees it
+    e.currentTarget.setPointerCapture(e.pointerId)
+
     const newId = nextHandleId(side, handles)
     if (!newId) return
 
-    // Store the original mouse event coords so we can replay
-    const { clientX, clientY } = e
+    const { clientX, clientY, pointerId } = e
+    const target = e.currentTarget
+
+    // Release capture before we dispatch on the handle
+    try { target.releasePointerCapture(pointerId) } catch (_) {}
 
     // Create the handle
     ctx.onAddHandle?.(id, newId)
@@ -40,17 +49,17 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
     requestAnimationFrame(() => {
       updateNodeInternals(id)
       requestAnimationFrame(() => {
-        // Find the newly created source handle element
         const nodeEl = document.querySelector(`.react-flow__node[data-id="${id}"]`)
         if (!nodeEl) return
         const handleEl = nodeEl.querySelector(`.react-flow__handle[data-handleid="${newId}"]`)
         if (!handleEl) return
 
-        // Dispatch a mousedown on the real handle to start React Flow's connection drag
-        const mouseDown = new MouseEvent('mousedown', {
-          clientX, clientY, bubbles: true, cancelable: true,
+        // React Flow listens for pointerdown on handles to start connections
+        const pointerDown = new PointerEvent('pointerdown', {
+          clientX, clientY, pointerId: 1, bubbles: true, cancelable: true,
+          pointerType: 'mouse', isPrimary: true,
         })
-        handleEl.dispatchEvent(mouseDown)
+        handleEl.dispatchEvent(pointerDown)
       })
     })
   }, [id, handles, ctx, updateNodeInternals])
@@ -96,8 +105,8 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
         return (
           <div key={side} style={{ position: 'absolute', ...zones[side], zIndex: 1, cursor: 'crosshair' }}
             onMouseEnter={() => setHoveredSide(side)} onMouseLeave={() => setHoveredSide(null)}
-            onMouseDown={(e) => onGhostMouseDown(e, side)}
-            onClick={(e) => { e.stopPropagation(); addHandle(side) }}>
+            onPointerDown={(e) => onGhostPointerDown(e, side)}
+            onClick={(e) => e.stopPropagation()}>
             {hoveredSide === side && (
               <div style={{ position: 'absolute', ...ghostPos, width: 30, height: 30, background: 'white', border: '2px solid #747474', borderRadius: 1.4, opacity: 0.45, pointerEvents: 'none' }} />
             )}
