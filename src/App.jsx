@@ -129,6 +129,17 @@ function Flow() {
     setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, strokeColor: color } } : n))
   }, [setNodes])
 
+  // Add a handle to a node (called from node components via context)
+  const onAddHandle = useCallback((nodeId, edge) => {
+    setNodes((nds) => nds.map((n) => {
+      if (n.id !== nodeId) return n
+      if (n.data.activeHandles.includes(edge)) return n
+      const ah = [...n.data.activeHandles, edge]
+      const ht = { ...n.data.handleTypes, [edge]: activeConnectorType || 'plain' }
+      return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
+    }))
+  }, [setNodes, activeConnectorType])
+
   // Handle context menu — called from within node components
   const onHandleContextMenu = useCallback((event, nodeId, edge, currentType) => {
     setContextMenu(null)
@@ -169,7 +180,7 @@ function Flow() {
   }, [setNodes, setEdges])
 
   return (
-    <ConnectorContext.Provider value={{ activeConnectorType, onHandleContextMenu }}>
+    <ConnectorContext.Provider value={{ activeConnectorType, onHandleContextMenu, onAddHandle, onRemoveHandle }}>
       <div className="flex h-screen w-screen" onKeyDown={onKeyDown} tabIndex={0}>
         <Sidebar activeConnectorType={activeConnectorType} onConnectorTypeChange={setActiveConnectorType} />
         <div className="flex-1 h-full" ref={reactFlowWrapper}>

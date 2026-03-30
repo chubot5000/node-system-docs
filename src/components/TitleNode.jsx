@@ -7,28 +7,13 @@ function TitleNode({ data, id }) {
   const [title, setTitle] = useState(data.label || 'Title')
   const [editing, setEditing] = useState(false)
   const [hovered, setHovered] = useState(false)
-  const { activeConnectorType, onHandleContextMenu } = useContext(ConnectorContext)
+  const { onHandleContextMenu, onAddHandle, onRemoveHandle } = useContext(ConnectorContext)
 
-  // Local add/remove just for hover UX — actual state is in data
-  const [localHandles, setLocalHandles] = useState(data.activeHandles || ['bottom'])
-  const [localTypes, setLocalTypes] = useState(data.handleTypes || {})
-
-  // Sync from data prop
-  const activeHandles = data.activeHandles || localHandles
-  const handleTypes = data.handleTypes || localTypes
-
-  const addHandle = useCallback((edge) => {
-    setLocalHandles((prev) => prev.includes(edge) ? prev : [...prev, edge])
-    setLocalTypes((prev) => ({ ...prev, [edge]: activeConnectorType || 'plain' }))
-  }, [activeConnectorType])
-  const removeHandle = useCallback((edge) => {
-    setLocalHandles((prev) => prev.filter((e) => e !== edge))
-    setLocalTypes((prev) => { const n = { ...prev }; delete n[edge]; return n })
-  }, [])
-
+  const addHandle = useCallback((edge) => onAddHandle?.(id, edge), [onAddHandle, id])
+  const removeHandle = useCallback((edge) => onRemoveHandle?.(id, edge), [onRemoveHandle, id])
   const handleCtxMenu = useCallback((e, edge) => {
-    onHandleContextMenu?.(e, id, edge, handleTypes[edge] || 'plain')
-  }, [onHandleContextMenu, id, handleTypes])
+    onHandleContextMenu?.(e, id, edge, (data.handleTypes || {})[edge] || 'plain')
+  }, [onHandleContextMenu, id, data.handleTypes])
 
   return (
     <motion.div
@@ -39,20 +24,17 @@ function TitleNode({ data, id }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <NodeHandles activeHandles={activeHandles} handleTypes={handleTypes} hovered={hovered} onAddHandle={addHandle} onRemoveHandle={removeHandle} onHandleContextMenu={handleCtxMenu} />
+      <NodeHandles activeHandles={data.activeHandles || ['bottom']} handleTypes={data.handleTypes || {}} hovered={hovered} onAddHandle={addHandle} onRemoveHandle={removeHandle} onHandleContextMenu={handleCtxMenu} />
       {editing ? (
         <input
-          autoFocus
-          defaultValue={title}
+          autoFocus defaultValue={title}
           onBlur={(e) => { setEditing(false); setTitle(e.target.value) }}
           onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
           style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', background: 'transparent', outline: 'none', width: '100%', padding: '0 16px', border: 'none', fontFamily: 'Inter, sans-serif' }}
         />
       ) : (
-        <div
-          onDoubleClick={() => setEditing(true)}
-          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', cursor: 'text', userSelect: 'none', padding: '0 16px', width: '100%' }}
-        >
+        <div onDoubleClick={() => setEditing(true)}
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', cursor: 'text', userSelect: 'none', padding: '0 16px', width: '100%' }}>
           {title}
         </div>
       )}
