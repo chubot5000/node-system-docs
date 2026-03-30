@@ -99,6 +99,19 @@ body {
   rx: 6;
 }
 
+/* Canvas frame node — no selection ring, no padding */
+.react-flow__node[data-id="__canvas__"] {
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+.react-flow__node[data-id="__canvas__"].selected,
+.react-flow__node[data-id="__canvas__"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .flex.h-screen.w-screen:focus {
   outline: none;
 }

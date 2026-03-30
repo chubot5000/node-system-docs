@@ -14,6 +14,8 @@ import {
 import '@xyflow/react/dist/style.css'
 
 import Sidebar from './components/Sidebar'
+import CanvasFrame from './components/CanvasFrame'
+import ExportPanel from './components/ExportPanel'
 import LargeTitleNode from './components/LargeTitleNode'
 import TitleNode from './components/TitleNode'
 import TextNode from './components/TextNode'
@@ -28,12 +30,30 @@ import { nextHandleId, countOnSide } from './utils/handleUtils'
 export const ConnectorContext = createContext('plain')
 
 const nodeTypes = {
+  canvasFrame: CanvasFrame,
   largeTitleNode: LargeTitleNode,
   titleNode: TitleNode,
   textNode: TextNode,
   logoNode: LogoNode,
   imageNode: ImageNode,
 }
+
+const CANVAS_ID = '__canvas__'
+const DEFAULT_W = 1920
+const DEFAULT_H = 1080
+
+const makeCanvasNode = (w, h) => ({
+  id: CANVAS_ID,
+  type: 'canvasFrame',
+  position: { x: 0, y: 0 },
+  data: { width: w, height: h },
+  draggable: false,
+  selectable: false,
+  focusable: false,
+  deletable: false,
+  connectable: false,
+  zIndex: -1,
+})
 
 const defaultEdgeOptions = {
   type: 'default',
@@ -44,7 +64,8 @@ const defaultEdgeOptions = {
 }
 
 const initialNodes = [
-  { id: '1', type: 'titleNode', position: { x: 400, y: 200 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
+  makeCanvasNode(DEFAULT_W, DEFAULT_H),
+  { id: '1', type: 'titleNode', position: { x: 780, y: 490 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
 ]
 
 const initialEdges = []
@@ -63,6 +84,8 @@ function Flow() {
   const [contextMenu, setContextMenu] = useState(null)
   const [handleMenu, setHandleMenu] = useState(null)
   const [paneMenu, setPaneMenu] = useState(null)
+  const [canvasW, setCanvasW] = useState(DEFAULT_W)
+  const [canvasH, setCanvasH] = useState(DEFAULT_H)
   const updateNodeInternals = useUpdateNodeInternals()
   const connectingFrom = useRef(null)
 
@@ -207,14 +230,33 @@ function Flow() {
     }))
   }, [paneMenu, setNodes])
 
+  const onCanvasChange = useCallback((w, h) => {
+    setCanvasW(w)
+    setCanvasH(h)
+    setNodes((nds) => nds.map((n) => n.id === CANVAS_ID
+      ? { ...n, data: { ...n.data, width: w, height: h } }
+      : n
+    ))
+    // Fit view to new canvas bounds after a tick
+    requestAnimationFrame(() => {
+      reactFlowInstance?.fitBounds({ x: 0, y: 0, width: w, height: h }, { padding: 0.1 })
+    })
+  }, [setNodes, reactFlowInstance])
+
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault()
+    // Canvas frame → show pane context menu instead
+    if (node.id === CANVAS_ID) {
+      setPaneMenu({ x: event.clientX, y: event.clientY, flowPos: reactFlowInstance?.screenToFlowPosition({ x: event.clientX, y: event.clientY }) })
+      return
+    }
     if (event.target.closest('.react-flow__handle')) return
     setHandleMenu(null)
     setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor })
-  }, [])
+  }, [reactFlowInstance])
 
   const onDeleteNode = useCallback((nodeId) => {
+    if (nodeId === CANVAS_ID) return
     setNodes((nds) => nds.filter((n) => n.id !== nodeId))
     setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
   }, [setNodes, setEdges])
@@ -272,7 +314,7 @@ function Flow() {
     if (event.key === 'Backspace' || event.key === 'Delete') {
       const tag = event.target.tagName.toLowerCase()
       if (tag === 'input' || tag === 'textarea') return
-      setNodes((nds) => nds.filter((n) => !n.selected))
+      setNodes((nds) => nds.filter((n) => !n.selected || n.id === CANVAS_ID))
       setEdges((eds) => eds.filter((e) => !e.selected))
     }
   }, [setNodes, setEdges])
@@ -303,7 +345,7 @@ function Flow() {
             snapToGrid
             snapGrid={[15, 15]}
             fitView
-            fitViewOptions={{ padding: 0.5, maxZoom: 0.6 }}
+            fitViewOptions={{ padding: 0.08, maxZoom: 0.8 }}
             deleteKeyCode={null}
             style={{ background: '#F5F3F0' }}
           >
@@ -311,6 +353,7 @@ function Flow() {
             <Controls position="top-right" />
           </ReactFlow>
         </div>
+        <ExportPanel canvasW={canvasW} canvasH={canvasH} onCanvasChange={onCanvasChange} />
         {selectedEdge && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setSelectedEdge(null)} />
