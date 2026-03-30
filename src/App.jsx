@@ -271,29 +271,58 @@ function Flow() {
     return group
   }, [bridges])
 
-  /* On drag start: record starting positions for group movement */
+  /* On drag start: record starting positions for group + shift-lock */
   const onNodeDragStart = useCallback((event, draggedNode) => {
     if (isSpecialNode(draggedNode)) return
-    const group = getBridgeGroup(draggedNode.id)
-    if (group.size <= 1) return
-    const positions = {}
-    for (const nId of group) {
-      const n = reactFlowInstance?.getNode(nId)
-      if (n) positions[nId] = { x: n.position.x, y: n.position.y }
+    const pos = {
+      __draggedId: draggedNode.id,
+      __startX: draggedNode.position.x,
+      __startY: draggedNode.position.y,
+      __shiftLockAxis: null,  // determined on first move if shift held
     }
-    positions.__draggedId = draggedNode.id
-    positions.__startX = draggedNode.position.x
-    positions.__startY = draggedNode.position.y
-    dragStartPos.current = positions
+    // Bridge group positions
+    const group = getBridgeGroup(draggedNode.id)
+    if (group.size > 1) {
+      for (const nId of group) {
+        const n = reactFlowInstance?.getNode(nId)
+        if (n) pos[nId] = { x: n.position.x, y: n.position.y }
+      }
+    }
+    dragStartPos.current = pos
   }, [getBridgeGroup, reactFlowInstance])
 
-  /* On drag: move entire bridge group together */
+  /* On drag: shift-lock + bridge group movement */
   const onNodeDrag = useCallback((event, draggedNode) => {
     const pos = dragStartPos.current
     if (!pos.__draggedId || pos.__draggedId !== draggedNode.id) return
 
-    const dx = draggedNode.position.x - pos.__startX
-    const dy = draggedNode.position.y - pos.__startY
+    let dx = draggedNode.position.x - pos.__startX
+    let dy = draggedNode.position.y - pos.__startY
+
+    // Shift-lock: constrain to one axis
+    if (event.shiftKey) {
+      if (!pos.__shiftLockAxis) {
+        // Determine axis on first significant movement
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+          pos.__shiftLockAxis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y'
+        }
+      }
+      if (pos.__shiftLockAxis === 'x') {
+        // Lock Y — move node back to start Y
+        setNodes((nds) => nds.map((n) =>
+          n.id === draggedNode.id ? { ...n, position: { x: draggedNode.position.x, y: pos.__startY } } : n
+        ))
+        dy = 0
+      } else if (pos.__shiftLockAxis === 'y') {
+        // Lock X — move node back to start X
+        setNodes((nds) => nds.map((n) =>
+          n.id === draggedNode.id ? { ...n, position: { x: pos.__startX, y: draggedNode.position.y } } : n
+        ))
+        dx = 0
+      }
+    } else {
+      pos.__shiftLockAxis = null  // reset if shift released
+    }
 
     setNodes((nds) => nds.map((n) => {
       if (n.id === draggedNode.id || !pos[n.id]) return n
@@ -615,6 +644,78 @@ function Flow() {
     setTimeout(() => updateNodeInternals(nodeId), 0)
   }, [setNodes, setEdges, updateNodeInternals])
 
+  /* ── Alignment (Figma-style) ── */
+  const alignNodes = useCallback((alignment) => {
+    const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
+    if (sel.length < 2) return
+    takeSnapshot()
+
+    // Get bounds with measured dimensions
+    const withDims = sel.map((n) => {
+      const rfn = reactFlowInstance?.getNode(n.id)
+      const w = rfn?.measured?.width ?? 250
+      const h = rfn?.measured?.height ?? 80
+      return { ...n, w, h }
+    })
+
+    setNodes((nds) => {
+      let ref
+      switch (alignment) {
+        case 'left':
+          ref = Math.min(...withDims.map((n) => n.position.x))
+          return nds.map((n) => sel.find((s) => s.id === n.id) ? { ...n, position: { ...n.position, x: ref } } : n)
+        case 'right':
+          ref = Math.max(...withDims.map((n) => n.position.x + n.w))
+          return nds.map((n) => {
+            const s = withDims.find((s) => s.id === n.id)
+            return s ? { ...n, position: { ...n.position, x: ref - s.w } } : n
+          })
+        case 'center-h':
+          ref = withDims.reduce((sum, n) => sum + n.position.x + n.w / 2, 0) / withDims.length
+          return nds.map((n) => {
+            const s = withDims.find((s) => s.id === n.id)
+            return s ? { ...n, position: { ...n.position, x: ref - s.w / 2 } } : n
+          })
+        case 'top':
+          ref = Math.min(...withDims.map((n) => n.position.y))
+          return nds.map((n) => sel.find((s) => s.id === n.id) ? { ...n, position: { ...n.position, y: ref } } : n)
+        case 'bottom':
+          ref = Math.max(...withDims.map((n) => n.position.y + n.h))
+          return nds.map((n) => {
+            const s = withDims.find((s) => s.id === n.id)
+            return s ? { ...n, position: { ...n.position, y: ref - s.h } } : n
+          })
+        case 'center-v':
+          ref = withDims.reduce((sum, n) => sum + n.position.y + n.h / 2, 0) / withDims.length
+          return nds.map((n) => {
+            const s = withDims.find((s) => s.id === n.id)
+            return s ? { ...n, position: { ...n.position, y: ref - s.h / 2 } } : n
+          })
+        case 'distribute-h': {
+          const sorted = [...withDims].sort((a, b) => a.position.x - b.position.x)
+          const totalW = sorted.reduce((s, n) => s + n.w, 0)
+          const span = sorted[sorted.length - 1].position.x + sorted[sorted.length - 1].w - sorted[0].position.x
+          const gap = (span - totalW) / (sorted.length - 1)
+          let x = sorted[0].position.x
+          const posMap = {}
+          sorted.forEach((n) => { posMap[n.id] = x; x += n.w + gap })
+          return nds.map((n) => posMap[n.id] !== undefined ? { ...n, position: { ...n.position, x: posMap[n.id] } } : n)
+        }
+        case 'distribute-v': {
+          const sorted = [...withDims].sort((a, b) => a.position.y - b.position.y)
+          const totalH = sorted.reduce((s, n) => s + n.h, 0)
+          const span = sorted[sorted.length - 1].position.y + sorted[sorted.length - 1].h - sorted[0].position.y
+          const gap = (span - totalH) / (sorted.length - 1)
+          let y = sorted[0].position.y
+          const posMap = {}
+          sorted.forEach((n) => { posMap[n.id] = y; y += n.h + gap })
+          return nds.map((n) => posMap[n.id] !== undefined ? { ...n, position: { ...n.position, y: posMap[n.id] } } : n)
+        }
+        default: return nds
+      }
+    })
+  }, [nodes, reactFlowInstance, setNodes, takeSnapshot])
+
   const undo = useCallback(() => {
     if (historyIdxRef.current <= 0) return
     historyIdxRef.current--
@@ -748,7 +849,8 @@ function Flow() {
         </div>
         <RightPanel canvasW={canvasW} canvasH={canvasH} onCanvasChange={onCanvasChange}
           canvasBg={canvasBg} onCanvasBgChange={setCanvasBg}
-          selectedNodes={selectedNodes} onFillChange={onFillChange} onStrokeChange={onStrokeChange} />
+          selectedNodes={selectedNodes} onFillChange={onFillChange} onStrokeChange={onStrokeChange}
+          onAlign={alignNodes} />
         {selectedEdge && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setSelectedEdge(null)} />

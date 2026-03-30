@@ -60,7 +60,18 @@ function HexColorInput({ value, onChange }) {
   )
 }
 
-function RightPanel({ canvasW, canvasH, onCanvasChange, canvasBg, onCanvasBgChange, selectedNodes, onFillChange, onStrokeChange }) {
+const alignIcons = {
+  'left': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1v12M4 3h7v3H4zM4 8h5v3H4z" stroke="#655343" strokeWidth="1.2"/></svg>,
+  'center-h': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M3 3h8v3H3zM4 8h6v3H4z" stroke="#655343" strokeWidth="1.2"/></svg>,
+  'right': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 1v12M3 3h7v3H3zM5 8h5v3H5z" stroke="#655343" strokeWidth="1.2"/></svg>,
+  'top': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1h12M3 4v7h3V4zM8 4v5h3V4z" stroke="#655343" strokeWidth="1.2"/></svg>,
+  'center-v': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M3 3v8h3V3zM8 4v6h3V4z" stroke="#655343" strokeWidth="1.2"/></svg>,
+  'bottom': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 13h12M3 3v7h3V3zM8 5v5h3V5z" stroke="#655343" strokeWidth="1.2"/></svg>,
+  'distribute-h': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1v12M13 1v12M5 4h4v6H5z" stroke="#655343" strokeWidth="1.2"/></svg>,
+  'distribute-v': <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1h12M1 13h12M4 5h6v4H4z" stroke="#655343" strokeWidth="1.2"/></svg>,
+}
+
+function RightPanel({ canvasW, canvasH, onCanvasChange, canvasBg, onCanvasBgChange, selectedNodes, onFillChange, onStrokeChange, onAlign }) {
   const [format, setFormat] = useState('png')
   const [scale, setScale] = useState(1)
   const [exporting, setExporting] = useState(false)
@@ -230,6 +241,40 @@ function RightPanel({ canvasW, canvasH, onCanvasChange, canvasBg, onCanvasBgChan
                 value={selectedNodes[0].data.strokeColor || '#747474'}
                 onChange={(c) => selectedNodes.forEach(n => onStrokeChange(n.id, c))}
               />
+            </div>
+          </Section>
+        )}
+
+        {/* Alignment — show when 2+ nodes selected */}
+        {selectedNodes.length >= 2 && (
+          <Section title="Alignment">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 2 }}>
+                {['left', 'center-h', 'right'].map((a) => (
+                  <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
+                    style={{ flex: 1, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer', padding: 0 }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                  >{alignIcons[a]}</button>
+                ))}
+                <div style={{ width: 1, background: '#E0DCDA', margin: '0 2px', flexShrink: 0 }} />
+                {['top', 'center-v', 'bottom'].map((a) => (
+                  <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
+                    style={{ flex: 1, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer', padding: 0 }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                  >{alignIcons[a]}</button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 2 }}>
+                {['distribute-h', 'distribute-v'].map((a) => (
+                  <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
+                    style={{ flex: 1, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer', padding: 0 }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                  >{alignIcons[a]}</button>
+                ))}
+              </div>
             </div>
           </Section>
         )}
