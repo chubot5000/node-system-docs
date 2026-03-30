@@ -89,7 +89,7 @@ const defaultEdgeOptions = {
 
 const initialNodes = [
   makeCanvasNode(DEFAULT_W, DEFAULT_H),
-  { id: '1', type: 'titleNode', position: { x: 835, y: 498 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
+  { id: '1', type: 'titleNode', position: { x: 835, y: 500 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
 ]
 
 const initialEdges = []
@@ -644,13 +644,12 @@ function Flow() {
     setTimeout(() => updateNodeInternals(nodeId), 0)
   }, [setNodes, setEdges, updateNodeInternals])
 
-  /* ── Alignment (Figma-style) ── */
+  /* ── Alignment to canvas ── */
   const alignNodes = useCallback((alignment) => {
     const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
-    if (sel.length < 2) return
+    if (sel.length < 1) return
     takeSnapshot()
 
-    // Get bounds with measured dimensions
     const withDims = sel.map((n) => {
       const rfn = reactFlowInstance?.getNode(n.id)
       const w = rfn?.measured?.width ?? 250
@@ -658,63 +657,21 @@ function Flow() {
       return { ...n, w, h }
     })
 
-    setNodes((nds) => {
-      let ref
+    // Canvas bounds: (0,0) to (canvasW, canvasH)
+    setNodes((nds) => nds.map((n) => {
+      const s = withDims.find((s) => s.id === n.id)
+      if (!s) return n
       switch (alignment) {
-        case 'left':
-          ref = Math.min(...withDims.map((n) => n.position.x))
-          return nds.map((n) => sel.find((s) => s.id === n.id) ? { ...n, position: { ...n.position, x: ref } } : n)
-        case 'right':
-          ref = Math.max(...withDims.map((n) => n.position.x + n.w))
-          return nds.map((n) => {
-            const s = withDims.find((s) => s.id === n.id)
-            return s ? { ...n, position: { ...n.position, x: ref - s.w } } : n
-          })
-        case 'center-h':
-          ref = withDims.reduce((sum, n) => sum + n.position.x + n.w / 2, 0) / withDims.length
-          return nds.map((n) => {
-            const s = withDims.find((s) => s.id === n.id)
-            return s ? { ...n, position: { ...n.position, x: ref - s.w / 2 } } : n
-          })
-        case 'top':
-          ref = Math.min(...withDims.map((n) => n.position.y))
-          return nds.map((n) => sel.find((s) => s.id === n.id) ? { ...n, position: { ...n.position, y: ref } } : n)
-        case 'bottom':
-          ref = Math.max(...withDims.map((n) => n.position.y + n.h))
-          return nds.map((n) => {
-            const s = withDims.find((s) => s.id === n.id)
-            return s ? { ...n, position: { ...n.position, y: ref - s.h } } : n
-          })
-        case 'center-v':
-          ref = withDims.reduce((sum, n) => sum + n.position.y + n.h / 2, 0) / withDims.length
-          return nds.map((n) => {
-            const s = withDims.find((s) => s.id === n.id)
-            return s ? { ...n, position: { ...n.position, y: ref - s.h / 2 } } : n
-          })
-        case 'distribute-h': {
-          const sorted = [...withDims].sort((a, b) => a.position.x - b.position.x)
-          const totalW = sorted.reduce((s, n) => s + n.w, 0)
-          const span = sorted[sorted.length - 1].position.x + sorted[sorted.length - 1].w - sorted[0].position.x
-          const gap = (span - totalW) / (sorted.length - 1)
-          let x = sorted[0].position.x
-          const posMap = {}
-          sorted.forEach((n) => { posMap[n.id] = x; x += n.w + gap })
-          return nds.map((n) => posMap[n.id] !== undefined ? { ...n, position: { ...n.position, x: posMap[n.id] } } : n)
-        }
-        case 'distribute-v': {
-          const sorted = [...withDims].sort((a, b) => a.position.y - b.position.y)
-          const totalH = sorted.reduce((s, n) => s + n.h, 0)
-          const span = sorted[sorted.length - 1].position.y + sorted[sorted.length - 1].h - sorted[0].position.y
-          const gap = (span - totalH) / (sorted.length - 1)
-          let y = sorted[0].position.y
-          const posMap = {}
-          sorted.forEach((n) => { posMap[n.id] = y; y += n.h + gap })
-          return nds.map((n) => posMap[n.id] !== undefined ? { ...n, position: { ...n.position, y: posMap[n.id] } } : n)
-        }
-        default: return nds
+        case 'left': return { ...n, position: { ...n.position, x: 0 } }
+        case 'right': return { ...n, position: { ...n.position, x: canvasW - s.w } }
+        case 'center-h': return { ...n, position: { ...n.position, x: (canvasW - s.w) / 2 } }
+        case 'top': return { ...n, position: { ...n.position, y: 0 } }
+        case 'bottom': return { ...n, position: { ...n.position, y: canvasH - s.h } }
+        case 'center-v': return { ...n, position: { ...n.position, y: (canvasH - s.h) / 2 } }
+        default: return n
       }
-    })
-  }, [nodes, reactFlowInstance, setNodes, takeSnapshot])
+    }))
+  }, [nodes, reactFlowInstance, setNodes, takeSnapshot, canvasW, canvasH])
 
   const undo = useCallback(() => {
     if (historyIdxRef.current <= 0) return

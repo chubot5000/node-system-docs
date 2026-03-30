@@ -245,36 +245,25 @@ function RightPanel({ canvasW, canvasH, onCanvasChange, canvasBg, onCanvasBgChan
           </Section>
         )}
 
-        {/* Alignment — show when 2+ nodes selected */}
-        {selectedNodes.length >= 2 && (
+        {/* Alignment to canvas — show when 1+ nodes selected */}
+        {selectedNodes.length >= 1 && (
           <Section title="Alignment">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ display: 'flex', gap: 2 }}>
-                {['left', 'center-h', 'right'].map((a) => (
-                  <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
-                    style={{ flex: 1, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer', padding: 0 }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                  >{alignIcons[a]}</button>
-                ))}
-                <div style={{ width: 1, background: '#E0DCDA', margin: '0 2px', flexShrink: 0 }} />
-                {['top', 'center-v', 'bottom'].map((a) => (
-                  <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
-                    style={{ flex: 1, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer', padding: 0 }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                  >{alignIcons[a]}</button>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 2 }}>
-                {['distribute-h', 'distribute-v'].map((a) => (
-                  <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
-                    style={{ flex: 1, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer', padding: 0 }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                  >{alignIcons[a]}</button>
-                ))}
-              </div>
+            <div style={{ display: 'flex', gap: 2 }}>
+              {['left', 'center-h', 'right'].map((a) => (
+                <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
+                  style={alignBtnStyle}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                >{alignIcons[a]}</button>
+              ))}
+              <div style={{ width: 1, background: '#E0DCDA', margin: '0 2px', flexShrink: 0 }} />
+              {['top', 'center-v', 'bottom'].map((a) => (
+                <button key={a} onClick={() => onAlign?.(a)} title={a.replace('-', ' ')}
+                  style={alignBtnStyle}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#FAFAF9'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                >{alignIcons[a]}</button>
+              ))}
             </div>
           </Section>
         )}
@@ -327,6 +316,11 @@ function RightPanel({ canvasW, canvasH, onCanvasChange, canvasBg, onCanvasBgChan
       </div>
     </div>
   )
+}
+
+const alignBtnStyle = {
+  flex: 1, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: 'white', border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer', padding: 0,
 }
 
 const zoomBtn = {
