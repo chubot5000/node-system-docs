@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { createContext, useCallback, useRef, useState } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -9,6 +9,7 @@ import {
   Background,
   BackgroundVariant,
   ConnectionMode,
+  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
@@ -18,6 +19,8 @@ import TextNode from './components/TextNode'
 import LogoNode from './components/LogoNode'
 import ImageNode from './components/ImageNode'
 import EdgeLabelModal from './components/EdgeLabelModal'
+
+export const ConnectorContext = createContext('plain')
 
 const nodeTypes = {
   titleNode: TitleNode,
@@ -40,7 +43,7 @@ const initialNodes = [
 ]
 
 const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom', targetHandle: 'top', label: 'OWNS' },
+  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom-source', targetHandle: 'top-target', label: 'OWNS' },
 ]
 
 let id = 5
@@ -81,6 +84,7 @@ function Flow() {
       data: {
         label: type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : '',
         body: type === 'textNode' ? 'Double-click to edit this text content.' : undefined,
+        activeHandles: ['bottom'],
       },
     }
     setNodes((nds) => nds.concat(newNode))
@@ -104,46 +108,62 @@ function Flow() {
     setSelectedEdge(null)
   }, [])
 
+  // Delete selected nodes/edges on Backspace or Delete key
+  const onKeyDown = useCallback((event) => {
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+      // Don't delete if user is editing text
+      const tag = event.target.tagName.toLowerCase()
+      if (tag === 'input' || tag === 'textarea') return
+
+      setNodes((nds) => nds.filter((n) => !n.selected))
+      setEdges((eds) => eds.filter((e) => !e.selected))
+    }
+  }, [setNodes, setEdges])
+
   return (
-    <div className="flex h-screen w-screen">
-      <Sidebar activeConnectorType={activeConnectorType} onConnectorTypeChange={setActiveConnectorType} />
-      <div className="flex-1 h-full" ref={reactFlowWrapper}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onInit={setReactFlowInstance}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onEdgeClick={onEdgeClick}
-          onPaneClick={onPaneClick}
-          nodeTypes={nodeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
-          connectionMode={ConnectionMode.Loose}
-          snapToGrid
-          snapGrid={[15, 15]}
-          fitView
-          style={{ background: '#F5F3F0' }}
-        >
-          <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#D5D0CC" />
-          <Controls />
-        </ReactFlow>
+    <ConnectorContext.Provider value={activeConnectorType}>
+      <div className="flex h-screen w-screen" onKeyDown={onKeyDown} tabIndex={0}>
+        <Sidebar activeConnectorType={activeConnectorType} onConnectorTypeChange={setActiveConnectorType} />
+        <div className="flex-1 h-full" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onInit={setReactFlowInstance}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onEdgeClick={onEdgeClick}
+            onPaneClick={onPaneClick}
+            nodeTypes={nodeTypes}
+            defaultEdgeOptions={defaultEdgeOptions}
+            connectionMode={ConnectionMode.Loose}
+            snapToGrid
+            snapGrid={[15, 15]}
+            fitView
+            fitViewOptions={{ padding: 0.5, maxZoom: 0.6 }}
+            deleteKeyCode={null}
+            style={{ background: '#F5F3F0' }}
+          >
+            <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#D5D0CC" />
+            <Controls />
+          </ReactFlow>
+        </div>
+        {selectedEdge && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setSelectedEdge(null)} />
+            <EdgeLabelModal
+              edge={selectedEdge}
+              position={edgeModalPos}
+              onClose={() => setSelectedEdge(null)}
+              onSetLabel={onSetEdgeLabel}
+              onDelete={onDeleteEdge}
+            />
+          </>
+        )}
       </div>
-      {selectedEdge && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setSelectedEdge(null)} />
-          <EdgeLabelModal
-            edge={selectedEdge}
-            position={edgeModalPos}
-            onClose={() => setSelectedEdge(null)}
-            onSetLabel={onSetEdgeLabel}
-            onDelete={onDeleteEdge}
-          />
-        </>
-      )}
-    </div>
+    </ConnectorContext.Provider>
   )
 }
 

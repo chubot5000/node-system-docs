@@ -31,6 +31,22 @@ body {
   border-radius: 1.4px !important;
 }
 
+/* Stacked source+target handles on same edge — make them overlap exactly */
+.react-flow__handle-top.react-flow__handle-target,
+.react-flow__handle-top.react-flow__handle-source {
+  z-index: 3;
+}
+.react-flow__handle-bottom.react-flow__handle-target,
+.react-flow__handle-bottom.react-flow__handle-source {
+  z-index: 3;
+}
+
+/* Connector type: black filled */
+.react-flow__handle.handle-black {
+  background: black !important;
+  border-color: #747474 !important;
+}
+
 .react-flow__minimap { display: none; }
 .react-flow__controls { bottom: 16px !important; left: 280px !important; }
 
@@ -50,4 +66,9 @@ body {
   stroke: #CFCBC8;
   stroke-width: 2;
   rx: 4.625;
+}
+
+/* Focus outline removal on wrapper */
+.flex.h-screen.w-screen:focus {
+  outline: none;
 }
