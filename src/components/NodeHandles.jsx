@@ -4,7 +4,6 @@ import { Handle, Position } from '@xyflow/react'
 const positionMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
 const allEdges = ['top', 'bottom', 'left', 'right']
 
-// Invisible hover zones on each edge to detect which side the cursor is near
 const hoverZones = {
   top: { top: -20, left: '10%', right: '10%', height: 40, position: 'absolute' },
   bottom: { bottom: -20, left: '10%', right: '10%', height: 40, position: 'absolute' },
@@ -20,43 +19,31 @@ const ghostPositions = {
 }
 
 function getHandleClass(cType) {
-  if (!cType || cType === 'plain') return ''
+  if (!cType || cType === 'plain') return undefined
   if (cType === 'black') return 'handle-black'
   if (cType === 'additive') return 'handle-additive'
   if (cType.startsWith('arrow')) return `handle-${cType}`
-  return ''
+  return undefined
 }
 
-export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, onRemoveHandle, onHandleContextMenu }) {
+export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, onHandleContextMenu }) {
   const [hoveredEdge, setHoveredEdge] = useState(null)
 
   return (
     <>
-      {/* Dual source+target handles per active edge */}
-      {activeHandles.map((edge) => {
-        const cType = handleTypes?.[edge] || 'plain'
-        const cls = getHandleClass(cType)
-        return (
-          <div key={edge}>
-            <Handle
-              type="source"
-              position={positionMap[edge]}
-              id={`${edge}-src`}
-              className={cls}
-              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onHandleContextMenu?.(e, edge) }}
-            />
-            <Handle
-              type="target"
-              position={positionMap[edge]}
-              id={`${edge}-tgt`}
-              className={`${cls} handle-overlay`}
-              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onHandleContextMenu?.(e, edge) }}
-            />
-          </div>
-        )
-      })}
+      {activeHandles.map((edge) => (
+        <Handle
+          key={edge}
+          type="target"
+          position={positionMap[edge]}
+          id={edge}
+          isConnectableStart={true}
+          isConnectableEnd={true}
+          className={getHandleClass(handleTypes?.[edge]) || undefined}
+          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onHandleContextMenu?.(e, edge) }}
+        />
+      ))}
 
-      {/* Invisible hover zones for each empty edge — only show ghost for the hovered side */}
       {hovered && allEdges.filter((e) => !activeHandles.includes(e)).map((edge) => (
         <div
           key={`zone-${edge}`}
@@ -66,16 +53,11 @@ export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, 
           onClick={(e) => { e.stopPropagation(); onAddHandle(edge) }}
         >
           {hoveredEdge === edge && (
-            <div
-              style={{
-                position: 'absolute', ...ghostPositions[edge],
-                width: 30, height: 30,
-                background: 'white', border: '2px solid #747474',
-                borderRadius: 1.4,
-                opacity: 0.5,
-                pointerEvents: 'none',
-              }}
-            />
+            <div style={{
+              position: 'absolute', ...ghostPositions[edge],
+              width: 30, height: 30, background: 'white', border: '2px solid #747474',
+              borderRadius: 1.4, opacity: 0.5, pointerEvents: 'none',
+            }} />
           )}
         </div>
       ))}

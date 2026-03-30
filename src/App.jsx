@@ -47,7 +47,7 @@ const initialNodes = [
 ]
 
 const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom-src', targetHandle: 'top-tgt', label: 'OWNS', labelBgPadding: [16, 10] },
+  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom', targetHandle: 'top', label: 'OWNS', labelBgPadding: [16, 10] },
 ]
 
 let id = 5
@@ -167,10 +167,10 @@ function Flow() {
       delete ht[edge]
       return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
     }))
-    // Also remove edges connected to that handle (handles are edge-src / edge-tgt)
+    // Remove edges connected to that handle
     setEdges((eds) => eds.filter((e) => {
-      if (e.source === nodeId && (e.sourceHandle === `${edge}-src` || e.sourceHandle === edge)) return false
-      if (e.target === nodeId && (e.targetHandle === `${edge}-tgt` || e.targetHandle === edge)) return false
+      if (e.source === nodeId && e.sourceHandle === edge) return false
+      if (e.target === nodeId && e.targetHandle === edge) return false
       return true
     }))
     setTimeout(() => updateNodeInternals(nodeId), 0)
