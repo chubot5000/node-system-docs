@@ -51,7 +51,7 @@ function ContextMenu({ x, y, nodeId, currentFill, currentStroke, onClose, onDele
         onMouseEnter={(e) => e.currentTarget.style.background = '#f9f8f6'}
         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
       >
-        <span style={{ width: 14, height: 14, borderRadius: 3, border: '1.5px solid #747474', background: currentFill || 'white', display: 'inline-block' }} />
+        <span style={{ width: 14, height: 14, borderRadius: 2, border: '1.5px solid #747474', background: currentFill || 'white', display: 'inline-block', flexShrink: 0 }} />
         Fill Color
       </div>
       {showFillPicker && (
@@ -69,7 +69,7 @@ function ContextMenu({ x, y, nodeId, currentFill, currentStroke, onClose, onDele
         onMouseEnter={(e) => e.currentTarget.style.background = '#f9f8f6'}
         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
       >
-        <span style={{ width: 14, height: 14, borderRadius: 3, border: `2.5px solid ${currentStroke || '#747474'}`, background: 'transparent', display: 'inline-block' }} />
+        <span style={{ width: 14, height: 14, borderRadius: 2, border: `2.5px solid ${currentStroke || '#747474'}`, background: 'transparent', display: 'inline-block', flexShrink: 0 }} />
         Stroke Color
       </div>
       {showStrokePicker && (

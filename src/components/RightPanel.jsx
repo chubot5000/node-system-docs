@@ -47,13 +47,15 @@ function Section({ title, defaultOpen = true, children }) {
   )
 }
 
-function HexColorInput({ value, onChange, label }) {
+function HexColorInput({ value, onChange }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
-        style={{ width: 28, height: 28, border: '1px solid #E0DCDA', borderRadius: 4, padding: 0, cursor: 'pointer', background: 'none' }} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ width: 28, height: 28, borderRadius: 4, border: '1px solid #E0DCDA', overflow: 'hidden', flexShrink: 0, position: 'relative', background: value }}>
+        <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
+          style={{ position: 'absolute', inset: -4, width: 'calc(100% + 8px)', height: 'calc(100% + 8px)', cursor: 'pointer', opacity: 0 }} />
+      </div>
       <input type="text" value={value} onChange={(e) => { const v = e.target.value; if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) onChange(v) }}
-        style={{ flex: 1, padding: '4px 8px', fontSize: 12, color: '#655343', border: '1px solid #E0DCDA', borderRadius: 4, fontFamily: 'monospace', textTransform: 'uppercase', outline: 'none' }} />
+        style={{ width: 72, padding: '4px 6px', fontSize: 11, color: '#655343', border: '1px solid #E0DCDA', borderRadius: 4, fontFamily: 'monospace', textTransform: 'uppercase', outline: 'none' }} />
     </div>
   )
 }

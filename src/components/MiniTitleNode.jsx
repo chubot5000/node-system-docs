@@ -7,7 +7,7 @@ function MiniTitleNode({ data, id }) {
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={3}
-      style={{ width: 250, height: 41.67, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      style={{ width: 180, height: 83.33, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {editing ? (
         <input autoFocus defaultValue={title}
           onBlur={(e) => { setEditing(false); setTitle(e.target.value) }}
