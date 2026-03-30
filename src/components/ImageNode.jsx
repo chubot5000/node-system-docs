@@ -1,22 +1,18 @@
 import { useRef, useState } from 'react'
 import NodeWrapper from './NodeWrapper'
+import EditableText from './EditableText'
 
 function ImageNode({ data, id }) {
   const [title, setTitle] = useState(data.label || 'GPU')
   const [imageSrc, setImageSrc] = useState(null)
-  const [editingTitle, setEditingTitle] = useState(false)
   const fileRef = useRef()
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={3}
       style={{ width: 250, height: 250, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '16px 16px 8px' }}>
-        {editingTitle ? (
-          <input autoFocus defaultValue={title} onBlur={(e) => { setEditingTitle(false); setTitle(e.target.value) }} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-            style={{ fontSize: 23, fontWeight: 700, color: '#747474', background: 'transparent', outline: 'none', border: 'none' }} />
-        ) : (
-          <div onDoubleClick={() => setEditingTitle(true)} style={{ fontSize: 23, fontWeight: 700, color: '#747474', cursor: 'text' }}>{title}</div>
-        )}
+        <EditableText value={title} onChange={setTitle} placeholder="Title"
+          style={{ fontSize: 23, fontWeight: 700, color: '#747474' }} />
       </div>
       <div onClick={() => fileRef.current?.click()}
         style={{ flex: 1, margin: '0 16px 16px', background: '#E6D9CE', borderRadius: 6, border: '1px solid #655343', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}>

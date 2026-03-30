@@ -1,24 +1,15 @@
 import { useState } from 'react'
 import NodeWrapper from './NodeWrapper'
+import EditableText from './EditableText'
 
 function TitleNode({ data, id }) {
   const [title, setTitle] = useState(data.label || 'Title')
-  const [editing, setEditing] = useState(false)
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={1}
       style={{ width: 250, height: 80, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {editing ? (
-        <input autoFocus defaultValue={title}
-          onBlur={(e) => { setEditing(false); setTitle(e.target.value) }}
-          onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', background: 'transparent', outline: 'none', width: '100%', padding: '0 16px', border: 'none' }} />
-      ) : (
-        <div onDoubleClick={() => setEditing(true)}
-          style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', cursor: 'text', padding: '0 16px', width: '100%' }}>
-          {title}
-        </div>
-      )}
+      <EditableText value={title} onChange={setTitle} placeholder="Title"
+        style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', padding: '0 16px', width: '100%' }} />
     </NodeWrapper>
   )
 }
