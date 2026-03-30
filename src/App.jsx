@@ -569,7 +569,8 @@ function Flow() {
     setHandleMenu(null)
     const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
     const multiCount = sel.some((n) => n.id === node.id) ? sel.length : 1
-    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor, multiCount })
+    const isGrouped = !!node.parentId || node.type === 'group'
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, isGrouped, multiCount })
   }, [reactFlowInstance, nodes])
 
   const onSelectionContextMenu = useCallback((event) => {
@@ -577,7 +578,8 @@ function Flow() {
     const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
     if (sel.length === 0) return
     setHandleMenu(null)
-    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: sel[0].id, fill: sel[0].data.fillColor, stroke: sel[0].data.strokeColor, multiCount: sel.length })
+    const isGrouped = sel.some((n) => !!n.parentId)
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: sel[0].id, isGrouped, multiCount: sel.length })
   }, [nodes])
 
   /* Get target node IDs: all selected if the clicked node is selected, otherwise just the clicked node */
@@ -652,6 +654,64 @@ function Flow() {
     const idSet = new Set(ids)
     setNodes((nds) => nds.map((n) => idSet.has(n.id) ? { ...n, data: { ...n.data, strokeColor: color } } : n))
   }, [getTargetIds, setNodes])
+
+  const onGroupNodes = useCallback((nodeId) => {
+    const ids = getTargetIds(nodeId)
+    const targets = nodes.filter((n) => ids.includes(n.id) && !isSpecialNode(n))
+    if (targets.length < 2) return
+
+    const padding = 20
+    const minX = Math.min(...targets.map((n) => n.position.x))
+    const minY = Math.min(...targets.map((n) => n.position.y))
+    const maxX = Math.max(...targets.map((n) => n.position.x + (n.measured?.width || n.width || 250)))
+    const maxY = Math.max(...targets.map((n) => n.position.y + (n.measured?.height || n.height || 250)))
+
+    const groupId = `group-${Date.now()}`
+    const groupNode = {
+      id: groupId,
+      type: 'group',
+      position: { x: minX - padding, y: minY - padding },
+      style: { width: maxX - minX + padding * 2, height: maxY - minY + padding * 2, background: 'transparent', border: '2px dashed #A99482', borderRadius: 8 },
+      data: { label: '' },
+    }
+
+    setNodes((nds) => {
+      const updated = nds.map((n) => {
+        if (!ids.includes(n.id) || isSpecialNode(n)) return n
+        return {
+          ...n,
+          position: { x: n.position.x - groupNode.position.x, y: n.position.y - groupNode.position.y },
+          parentId: groupId,
+          extent: 'parent',
+        }
+      })
+      return [groupNode, ...updated]
+    })
+  }, [getTargetIds, nodes, setNodes])
+
+  const onUngroupNodes = useCallback((nodeId) => {
+    // Find the group this node belongs to
+    const node = nodes.find((n) => n.id === nodeId)
+    const groupId = node?.parentId || (node?.type === 'group' ? node.id : null)
+    if (!groupId) return
+
+    const groupNode = nodes.find((n) => n.id === groupId)
+    if (!groupNode) return
+
+    setNodes((nds) => {
+      return nds
+        .filter((n) => n.id !== groupId)
+        .map((n) => {
+          if (n.parentId !== groupId) return n
+          return {
+            ...n,
+            position: { x: n.position.x + groupNode.position.x, y: n.position.y + groupNode.position.y },
+            parentId: undefined,
+            extent: undefined,
+          }
+        })
+    })
+  }, [nodes, setNodes])
 
   const onAddHandle = useCallback((nodeId, handleId) => {
     setNodes((nds) => nds.map((n) => {
@@ -874,11 +934,11 @@ function Flow() {
         {contextMenu && (
           <ContextMenu
             x={contextMenu.x} y={contextMenu.y} nodeId={contextMenu.nodeId}
-            currentFill={contextMenu.fill} currentStroke={contextMenu.stroke}
+            isGrouped={contextMenu.isGrouped}
             onClose={() => setContextMenu(null)}
-            onDelete={onDeleteNode} onDuplicate={onDuplicateNode}
+            onDuplicate={onDuplicateNode}
             onRemoveAllHandles={onRemoveAllHandles}
-            onFillChange={onFillChange} onStrokeChange={onStrokeChange}
+            onGroup={onGroupNodes} onUngroup={onUngroupNodes}
           />
         )}
         {paneMenu && (

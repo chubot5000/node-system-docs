@@ -1,11 +1,7 @@
-import { memo, useState, useRef, useEffect } from 'react'
+import { memo, useRef, useEffect } from 'react'
 import { useSmartPosition } from '../utils/useSmartPosition'
 
-const presetColors = ['#FFFFFF', '#F5F3F0', '#E6D9CE', '#655343', '#747474', '#000000', '#F23030', '#68C4BA', '#C8E619', '#00063D']
-
-function ContextMenu({ x, y, nodeId, currentFill, currentStroke, onClose, onDelete, onDuplicate, onRemoveAllHandles, onFillChange, onStrokeChange }) {
-  const [showFillPicker, setShowFillPicker] = useState(false)
-  const [showStrokePicker, setShowStrokePicker] = useState(false)
+function ContextMenu({ x, y, nodeId, isGrouped, onClose, onDuplicate, onRemoveAllHandles, onGroup, onUngroup }) {
   const ref = useRef()
   const pos = useSmartPosition(ref, x, y)
 
@@ -47,47 +43,16 @@ function ContextMenu({ x, y, nodeId, currentFill, currentStroke, onClose, onDele
 
       <div style={{ height: 1, background: '#E0DCDA', margin: '4px 0' }} />
 
-      <div
-        onClick={() => { setShowFillPicker(!showFillPicker); setShowStrokePicker(false) }}
-        style={{ padding: '7px 16px', cursor: 'pointer', fontSize: 13, color: '#655343', display: 'flex', alignItems: 'center', gap: 8 }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#f9f8f6'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-      >
-        <span style={{ width: 14, height: 14, borderRadius: 2, border: '1.5px solid #747474', background: currentFill || 'white', display: 'inline-block', flexShrink: 0 }} />
-        Fill Color
-      </div>
-      {showFillPicker && (
-        <div style={{ padding: '4px 16px 8px', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {presetColors.map((c) => (
-            <div key={c} onClick={() => { onFillChange(nodeId, c); onClose() }}
-              style={{ width: 20, height: 20, borderRadius: 3, background: c, border: '1.5px solid #747474', cursor: 'pointer' }} />
-          ))}
-        </div>
-      )}
-
-      <div
-        onClick={() => { setShowStrokePicker(!showStrokePicker); setShowFillPicker(false) }}
-        style={{ padding: '7px 16px', cursor: 'pointer', fontSize: 13, color: '#655343', display: 'flex', alignItems: 'center', gap: 8 }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#f9f8f6'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-      >
-        <span style={{ width: 14, height: 14, borderRadius: 2, border: `2.5px solid ${currentStroke || '#747474'}`, background: 'transparent', display: 'inline-block', flexShrink: 0 }} />
-        Stroke Color
-      </div>
-      {showStrokePicker && (
-        <div style={{ padding: '4px 16px 8px', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {presetColors.map((c) => (
-            <div key={c} onClick={() => { onStrokeChange(nodeId, c); onClose() }}
-              style={{ width: 20, height: 20, borderRadius: 3, background: c, border: '1.5px solid #747474', cursor: 'pointer' }} />
-          ))}
-        </div>
-      )}
-
-      <div style={{ height: 1, background: '#E0DCDA', margin: '4px 0' }} />
-
-      {menuItem('Remove Node',
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>,
-        () => { onDelete(nodeId); onClose() }, '#ff4444', '#fef2f2'
+      {isGrouped ? (
+        menuItem('Ungroup',
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/><path d="M8 14H6a2 2 0 01-2-2v0"/><path d="M14 8h2a2 2 0 012 2v0"/></svg>,
+          () => { onUngroup(nodeId); onClose() }
+        )
+      ) : (
+        menuItem('Group',
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>,
+          () => { onGroup(nodeId); onClose() }
+        )
       )}
     </div>
   )
