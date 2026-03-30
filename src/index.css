@@ -43,22 +43,22 @@ body {
 
 /* Arrow right → */
 .react-flow__handle.handle-arrow-right {
-  background: white url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5h8M10 5L7.5 2.5M10 5L7.5 7.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px 10px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='13' height='11' viewBox='0 0 13 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/svg%3E") center/13px 11px no-repeat !important;
 }
 
 /* Arrow left ← */
 .react-flow__handle.handle-arrow-left {
-  background: white url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 5H4M4 5l2.5-2.5M4 5l2.5 2.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px 10px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='13' height='11' viewBox='0 0 13 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(180,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/13px 11px no-repeat !important;
 }
 
 /* Arrow up ↑ */
 .react-flow__handle.handle-arrow-up {
-  background: white url("data:image/svg+xml,%3Csvg width='10' height='14' viewBox='0 0 10 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 12V4M5 4L2.5 6.5M5 4l2.5 2.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/10px 14px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='11' height='13' viewBox='1 -1 11 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(-90,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/11px 13px no-repeat !important;
 }
 
 /* Arrow down ↓ */
 .react-flow__handle.handle-arrow-down {
-  background: white url("data:image/svg+xml,%3Csvg width='10' height='14' viewBox='0 0 10 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 2v8M5 10l-2.5-2.5M5 10l2.5-2.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/10px 14px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='11' height='13' viewBox='1 -1 11 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(90,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/11px 13px no-repeat !important;
 }
 
 .react-flow__minimap { display: none; }
