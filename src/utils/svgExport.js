@@ -134,7 +134,9 @@ function renderNode(node) {
     svg += `<rect x="${x}" y="${y}" width="${imgSize}" height="${h}" rx="3" fill="#DBD0C6"/>`
     svg += `<line x1="${x + imgSize}" y1="${y}" x2="${x + imgSize}" y2="${y + h}" stroke="${stroke}" stroke-width="2"/>`
     if (data.imageSrc) {
-      svg += `<image x="${x}" y="${y}" width="${imgSize}" height="${h}" href="${escXml(data.imageSrc)}" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 3px)"/>`
+      const clipId = `clip-simg-${node.id}`
+      svg += `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${imgSize}" height="${h}" rx="3"/></clipPath>`
+      svg += `<image x="${x}" y="${y}" width="${imgSize}" height="${h}" href="${escXml(data.imageSrc)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>`
     } else {
       svg += `<g transform="translate(${x + imgSize / 2 - 12},${y + h / 2 - 12})">
         <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#A99482" stroke-width="1.5"/>
@@ -185,7 +187,9 @@ function renderNode(node) {
     if (label) svg += `<text x="${x + 16}" y="${y + 34}" fill="#747474" font-size="23" font-weight="700">${label}</text>`
     if (data.imageSrc) {
       svg += `<rect x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" rx="6" fill="#E6D9CE" stroke="#655343" stroke-width="1"/>`
-      svg += `<image x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" href="${escXml(data.imageSrc)}" preserveAspectRatio="xMidYMid slice" clip-path="inset(0 round 6px)"/>`
+      const clipId = `clip-img-${node.id}`
+      svg += `<clipPath id="${clipId}"><rect x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" rx="6"/></clipPath>`
+      svg += `<image x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" href="${escXml(data.imageSrc)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>`
     } else {
       svg += `<rect x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" rx="6" fill="#E6D9CE" stroke="#655343" stroke-width="1"/>`
       svg += `<g transform="translate(${x + w / 2 - 24},${y + h / 2 - 12})">
