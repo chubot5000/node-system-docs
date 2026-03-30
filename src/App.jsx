@@ -279,10 +279,27 @@ function Flow() {
       return nds.concat({
         ...original,
         id: getId(),
-        position: { x: original.position.x + 30, y: original.position.y + 30 },
+        position: { x: original.position.x + 50, y: original.position.y + 50 },
         selected: false,
         data: { ...original.data, activeHandles: [...original.data.activeHandles], handleTypes: { ...original.data.handleTypes } },
       })
+    })
+  }, [setNodes])
+
+  /* Duplicate selected nodes with offset */
+  const duplicateSelected = useCallback(() => {
+    setNodes((nds) => {
+      const sel = nds.filter((n) => n.selected && n.id !== CANVAS_ID)
+      if (!sel.length) return nds
+      const clones = sel.map((n) => ({
+        ...n,
+        id: getId(),
+        position: { x: n.position.x + 50, y: n.position.y + 50 },
+        selected: true,
+        data: { ...n.data, activeHandles: [...(n.data.activeHandles || [])], handleTypes: { ...(n.data.handleTypes || {}) } },
+      }))
+      // Deselect originals
+      return nds.map((n) => n.selected && n.id !== CANVAS_ID ? { ...n, selected: false } : n).concat(clones)
     })
   }, [setNodes])
 
@@ -341,14 +358,69 @@ function Flow() {
     setTimeout(() => updateNodeInternals(nodeId), 0)
   }, [setNodes, setEdges, updateNodeInternals])
 
+  /* Clipboard: copy/cut/paste/duplicate/delete (Figma-style) */
+  const clipboardRef = useRef([])
+
   const onKeyDown = useCallback((event) => {
+    const tag = event.target.tagName.toLowerCase()
+    if (tag === 'input' || tag === 'textarea') return
+    const mod = event.metaKey || event.ctrlKey
+
+    // Delete / Backspace
     if (event.key === 'Backspace' || event.key === 'Delete') {
-      const tag = event.target.tagName.toLowerCase()
-      if (tag === 'input' || tag === 'textarea') return
       setNodes((nds) => nds.filter((n) => !n.selected || n.id === CANVAS_ID))
       setEdges((eds) => eds.filter((e) => !e.selected))
+      return
     }
-  }, [setNodes, setEdges])
+
+    // Cmd+D — Duplicate
+    if (mod && event.key === 'd') {
+      event.preventDefault()
+      duplicateSelected()
+      return
+    }
+
+    // Cmd+C — Copy
+    if (mod && !event.shiftKey && event.key === 'c') {
+      event.preventDefault()
+      const sel = nodes.filter((n) => n.selected && n.id !== CANVAS_ID)
+      if (sel.length) clipboardRef.current = sel.map((n) => JSON.parse(JSON.stringify(n)))
+      return
+    }
+
+    // Cmd+X — Cut
+    if (mod && event.key === 'x') {
+      event.preventDefault()
+      const sel = nodes.filter((n) => n.selected && n.id !== CANVAS_ID)
+      if (sel.length) {
+        clipboardRef.current = sel.map((n) => JSON.parse(JSON.stringify(n)))
+        const selIds = new Set(sel.map((n) => n.id))
+        setNodes((nds) => nds.filter((n) => !selIds.has(n.id)))
+        setEdges((eds) => eds.filter((e) => !selIds.has(e.source) && !selIds.has(e.target)))
+      }
+      return
+    }
+
+    // Cmd+V — Paste
+    if (mod && event.key === 'v') {
+      event.preventDefault()
+      if (!clipboardRef.current.length) return
+      setNodes((nds) => {
+        const deselected = nds.map((n) => ({ ...n, selected: false }))
+        const pasted = clipboardRef.current.map((n) => ({
+          ...n,
+          id: getId(),
+          position: { x: n.position.x + 50, y: n.position.y + 50 },
+          selected: true,
+          data: { ...n.data, activeHandles: [...(n.data.activeHandles || [])], handleTypes: { ...(n.data.handleTypes || {}) } },
+        }))
+        // Update clipboard positions so repeated pastes cascade
+        clipboardRef.current = pasted.map((n) => JSON.parse(JSON.stringify(n)))
+        return deselected.concat(pasted)
+      })
+      return
+    }
+  }, [setNodes, setEdges, nodes, duplicateSelected])
 
   return (
     <ConnectorContext.Provider value={{ activeConnectorType, onHandleContextMenu, onAddHandle, onRemoveHandle }}>
