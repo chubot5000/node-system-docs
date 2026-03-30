@@ -31,11 +31,6 @@ body {
   border-radius: 1.4px !important;
 }
 
-.react-flow__handle-top { top: -15px !important; }
-.react-flow__handle-bottom { bottom: -15px !important; }
-.react-flow__handle-left { left: -15px !important; }
-.react-flow__handle-right { right: -15px !important; }
-
 .react-flow__minimap { display: none; }
 .react-flow__controls { bottom: 16px !important; left: 280px !important; }
 

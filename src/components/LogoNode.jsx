@@ -2,6 +2,16 @@ import { memo, useState, useCallback, useRef } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import { motion } from 'framer-motion'
 
+const positionMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
+const handleTypeMap = { top: 'target', bottom: 'source', left: 'target', right: 'source' }
+const addButtonPositions = {
+  top: { top: -12, left: '50%', transform: 'translateX(-50%)' },
+  bottom: { bottom: -12, left: '50%', transform: 'translateX(-50%)' },
+  left: { left: -12, top: '50%', transform: 'translateY(-50%)' },
+  right: { right: -12, top: '50%', transform: 'translateY(-50%)' },
+}
+const allEdges = ['top', 'bottom', 'left', 'right']
+
 const defaultLogo = (
   <svg width="120" height="120" viewBox="0 0 250 250" fill="none">
     <path d="M126.365 58.1094L133.142 62.126L139.916 66.1436L146.693 70.1582L153.47 74.1748L160.247 78.1924L167.023 82.209L173.798 86.2236L180.574 90.2412L187.352 94.2578L194.128 98.2725L200.437 102.011L196.674 107.279L192.595 112.987L184.437 124.409L180.626 129.745L174.246 125.963L167.469 121.945L160.692 117.932L153.915 113.914L147.141 109.896L140.364 105.883L133.587 101.865L126.811 97.8486L125.013 96.7822L124.758 96.6309L124.503 96.7822L122.705 97.8486L115.929 101.865L109.151 105.883L102.375 109.896H102.374L95.6006 113.914L88.8232 117.932L82.0469 121.945L75.2695 125.963L68.8887 129.745L65.0791 124.409H65.0781L56.9209 112.987H56.9199L52.8418 107.279L49.0781 102.011L55.3867 98.2715L62.1641 94.2578L68.9414 90.2412L75.7178 86.2236L82.4922 82.209L89.2686 78.1924L96.0459 74.1748L102.822 70.1582L109.6 66.1436L116.374 62.126L123.15 58.1094L124.758 57.1572L126.365 58.1094Z" fill="white" stroke="rgba(255,255,255,0.3)"/>
@@ -12,12 +22,11 @@ const defaultLogo = (
 
 function LogoNode({ data }) {
   const [logoSrc, setLogoSrc] = useState(data.logoSrc || null)
+  const [activeHandles, setActiveHandles] = useState(data.activeHandles || ['bottom'])
+  const [hovered, setHovered] = useState(false)
   const fileRef = useRef()
 
-  const handleClick = useCallback(() => {
-    fileRef.current?.click()
-  }, [])
-
+  const handleClick = useCallback(() => { fileRef.current?.click() }, [])
   const handleFile = useCallback((e) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -26,6 +35,9 @@ function LogoNode({ data }) {
       reader.readAsDataURL(file)
     }
   }, [])
+  const addHandle = useCallback((edge) => {
+    setActiveHandles((prev) => prev.includes(edge) ? prev : [...prev, edge])
+  }, [])
 
   return (
     <motion.div
@@ -33,12 +45,25 @@ function LogoNode({ data }) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       onClick={handleClick}
-      style={{ width: 250, height: 250, background: '#655343', borderRadius: 5.6, border: '1px solid #655343', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+      style={{ width: 250, height: 250, background: '#655343', borderRadius: 5.6, border: '2px solid #655343', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      <Handle type="target" position={Position.Top} id="top" />
-      <Handle type="source" position={Position.Bottom} id="bottom" />
-      <Handle type="target" position={Position.Left} id="left" />
-      <Handle type="source" position={Position.Right} id="right" />
+      {activeHandles.map((edge) => (
+        <Handle key={edge} type={handleTypeMap[edge]} position={positionMap[edge]} id={edge} />
+      ))}
+      {hovered && allEdges.filter((e) => !activeHandles.includes(e)).map((edge) => (
+        <div
+          key={`add-${edge}`}
+          onClick={(e) => { e.stopPropagation(); addHandle(edge) }}
+          style={{
+            position: 'absolute', ...addButtonPositions[edge],
+            width: 18, height: 18, background: 'white', border: '1.5px solid #747474',
+            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', zIndex: 10, fontSize: 12, lineHeight: 1, color: '#747474', fontWeight: 'bold',
+          }}
+        >+</div>
+      ))}
       <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
       {logoSrc ? (
         <img src={logoSrc} alt="Logo" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />

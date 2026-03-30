@@ -33,10 +33,10 @@ const defaultEdgeOptions = {
 }
 
 const initialNodes = [
-  { id: '1', type: 'titleNode', position: { x: 350, y: 60 }, data: { label: 'Data Center' } },
-  { id: '2', type: 'textNode', position: { x: 350, y: 220 }, data: { label: 'Data Center', body: 'Choose from a collection of ready-made templates, made by creative professionals and ready for you to customize.\n\nChoose from a collection of ready-made templates, made by creative professionals.' } },
-  { id: '3', type: 'logoNode', position: { x: 800, y: 60 }, data: {} },
-  { id: '4', type: 'imageNode', position: { x: 800, y: 370 }, data: { label: 'GPU' } },
+  { id: '1', type: 'titleNode', position: { x: 350, y: 60 }, data: { label: 'Data Center', activeHandles: ['bottom'] } },
+  { id: '2', type: 'textNode', position: { x: 350, y: 220 }, data: { label: 'Data Center', activeHandles: ['top', 'bottom'], body: 'Choose from a collection of ready-made templates, made by creative professionals and ready for you to customize.\n\nChoose from a collection of ready-made templates, made by creative professionals.' } },
+  { id: '3', type: 'logoNode', position: { x: 800, y: 60 }, data: { activeHandles: ['bottom'] } },
+  { id: '4', type: 'imageNode', position: { x: 800, y: 370 }, data: { label: 'GPU', activeHandles: ['bottom'] } },
 ]
 
 const initialEdges = [
@@ -53,6 +53,7 @@ function Flow() {
   const [reactFlowInstance, setReactFlowInstance] = useState(null)
   const [selectedEdge, setSelectedEdge] = useState(null)
   const [edgeModalPos, setEdgeModalPos] = useState({ x: 0, y: 0 })
+  const [activeConnectorType, setActiveConnectorType] = useState('plain')
 
   const onConnect = useCallback((params) => {
     setEdges((eds) => addEdge({ ...params, style: { stroke: '#747474', strokeWidth: 2 } }, eds))
@@ -105,7 +106,7 @@ function Flow() {
 
   return (
     <div className="flex h-screen w-screen">
-      <Sidebar />
+      <Sidebar activeConnectorType={activeConnectorType} onConnectorTypeChange={setActiveConnectorType} />
       <div className="flex-1 h-full" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}

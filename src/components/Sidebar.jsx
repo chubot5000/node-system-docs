@@ -29,7 +29,18 @@ const nodeTypes = [
   )},
 ]
 
-function Sidebar() {
+const connectorTypes = [
+  { id: 'plain', title: 'Plain', content: null },
+  { id: 'arrow', title: 'Arrow', content: (
+    <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+      <path d="M2 3.5L9 3.5M9 3.5L6.5 1M9 3.5L6.5 6" stroke="#655343" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )},
+  { id: 'additive', title: 'Additive', content: <span className="text-sm text-border font-medium">+</span> },
+  { id: 'black', title: 'Black', content: null, filled: true },
+]
+
+function Sidebar({ activeConnectorType, onConnectorTypeChange }) {
   const onDragStart = (event, nodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType)
     event.dataTransfer.effectAllowed = 'move'
@@ -61,16 +72,21 @@ function Sidebar() {
 
         <h2 className="text-xs font-semibold text-accent uppercase tracking-wider mb-3 mt-6">Connectors</h2>
         <div className="flex gap-2">
-          <div className="w-[30px] h-[30px] border-2 border-border rounded-[1.4px] bg-white" title="Plain" />
-          <div className="w-[30px] h-[30px] border-2 border-border rounded-[1.4px] bg-white flex items-center justify-center" title="Arrow">
-            <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-              <path d="M2 3.5L9 3.5M9 3.5L6.5 1M9 3.5L6.5 6" stroke="#655343" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div className="w-[30px] h-[30px] border-2 border-border rounded-[1.4px] bg-white flex items-center justify-center" title="Additive">
-            <span className="text-sm text-border font-medium">+</span>
-          </div>
-          <div className="w-[30px] h-[30px] border-2 border-border rounded-[1.4px] bg-black" title="Black" />
+          {connectorTypes.map((ct) => (
+            <div
+              key={ct.id}
+              onClick={() => onConnectorTypeChange?.(ct.id)}
+              className="w-[30px] h-[30px] border-2 border-border rounded-[1.4px] flex items-center justify-center cursor-pointer transition-all"
+              style={{
+                background: ct.filled ? 'black' : 'white',
+                outline: activeConnectorType === ct.id ? '2px solid #655343' : 'none',
+                outlineOffset: 2,
+              }}
+              title={ct.title}
+            >
+              {ct.content}
+            </div>
+          ))}
         </div>
       </div>
 
