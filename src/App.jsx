@@ -324,11 +324,30 @@ function Flow() {
       pos.__shiftLockAxis = null  // reset if shift released
     }
 
-    setNodes((nds) => nds.map((n) => {
-      if (n.id === draggedNode.id || !pos[n.id]) return n
-      return { ...n, position: { x: pos[n.id].x + dx, y: pos[n.id].y + dy } }
-    }))
-  }, [setNodes])
+    setNodes((nds) => {
+      // Move bridge group members
+      const moved = nds.map((n) => {
+        if (n.id === draggedNode.id || !pos[n.id]) return n
+        return { ...n, position: { x: pos[n.id].x + dx, y: pos[n.id].y + dy } }
+      })
+      // Update bridge connector positions
+      return moved.map((n) => {
+        if (!n.id.startsWith('bridge-')) return n
+        const b = bridges.find((br) => br.id === n.id)
+        if (!b) return n
+        const nA = moved.find((nd) => nd.id === b.nodeA)
+        if (!nA) return n
+        const aW = nA.measured?.width ?? 250
+        const aH = nA.measured?.height ?? 80
+        let cx, cy
+        if (b.side === 'right') { cx = nA.position.x + aW - 10; cy = nA.position.y + aH / 2 - 15 }
+        else if (b.side === 'left') { cx = nA.position.x - 20; cy = nA.position.y + aH / 2 - 15 }
+        else if (b.side === 'bottom') { cx = nA.position.x + aW / 2 - 15; cy = nA.position.y + aH - 10 }
+        else { cx = nA.position.x + aW / 2 - 15; cy = nA.position.y - 20 }
+        return { ...n, position: { x: cx, y: cy } }
+      })
+    })
+  }, [setNodes, bridges])
 
   const onNodeDragStop = useCallback((event, draggedNode) => {
     dragStartPos.current = {}
