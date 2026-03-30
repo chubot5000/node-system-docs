@@ -71,7 +71,7 @@ const makeCanvasNode = (w, h) => ({
 })
 
 const defaultEdgeOptions = {
-  type: 'straight',
+  type: 'default',
   style: { stroke: '#747474', strokeWidth: 2 },
   animated: false,
   labelBgPadding: [16, 10],
@@ -670,8 +670,7 @@ function Flow() {
             selectionMode={SelectionMode.Partial}
             panOnDrag={[1]}
             panOnScroll
-            snapToGrid
-            snapGrid={[15, 15]}
+            snapToGrid={false}
             fitView
             fitViewOptions={{ padding: 0.08, maxZoom: 0.8 }}
             deleteKeyCode={null}
