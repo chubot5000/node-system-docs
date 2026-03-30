@@ -151,13 +151,18 @@ function renderNode(node) {
       svg += `<text x="${x + w / 2}" y="${y + h / 2 + 8}" text-anchor="middle" fill="#747474" font-size="23" font-weight="700">${label}</text>`
     }
   } else if (type === 'textNode') {
+    // Clip content to node bounds
+    const clipId = `clip-${node.id}`
+    svg += `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}"/></clipPath>`
+    svg += `<g clip-path="url(#${clipId})">`
     const label = escXml(data.label || '')
     if (label) svg += `<text x="${x + 24}" y="${y + 40}" fill="#747474" font-size="23" font-weight="700">${label}</text>`
     if (data.body) {
-      wrapText(data.body).forEach((line, i) => {
+      wrapText(data.body, 22).forEach((line, i) => {
         svg += `<text x="${x + 24}" y="${y + 72 + i * 29}" fill="#747474" font-size="18">${escXml(line)}</text>`
       })
     }
+    svg += `</g>`
   } else if (type === 'logoNode') {
     if (data.imageSrc) {
       // Embed uploaded image
