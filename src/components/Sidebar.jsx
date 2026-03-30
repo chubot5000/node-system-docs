@@ -31,12 +31,11 @@ const nodeTypes = [
 
 const connectorTypes = [
   { id: 'plain', title: 'Plain', content: null },
-  { id: 'arrow', title: 'Arrow', content: (
-    <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-      <path d="M2 5L10.5 5M10.5 5L7.5 2M10.5 5L7.5 8" stroke="#655343" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )},
-  { id: 'additive', title: 'Additive', content: <span className="text-sm text-[#747474] font-semibold">+</span> },
+  { id: 'arrow-right', title: '→', content: <span style={{ fontSize: 13, color: '#655343' }}>→</span> },
+  { id: 'arrow-left', title: '←', content: <span style={{ fontSize: 13, color: '#655343' }}>←</span> },
+  { id: 'arrow-up', title: '↑', content: <span style={{ fontSize: 13, color: '#655343' }}>↑</span> },
+  { id: 'arrow-down', title: '↓', content: <span style={{ fontSize: 13, color: '#655343' }}>↓</span> },
+  { id: 'additive', title: '+', content: <span style={{ fontSize: 15, color: '#747474', fontWeight: 600 }}>+</span> },
   { id: 'black', title: 'Black', content: null, filled: true },
 ]
 
@@ -71,8 +70,8 @@ function Sidebar({ activeConnectorType, onConnectorTypeChange }) {
         </div>
 
         <h2 className="text-xs font-semibold text-[#655343] uppercase tracking-wider mb-3 mt-6">Connector Type</h2>
-        <p className="text-[10px] text-[#747474] mb-2">Select type, then click + on a node edge</p>
-        <div className="flex gap-2">
+        <p className="text-[10px] text-[#747474] mb-2">Select, then + on node edge. Right-click connector to change.</p>
+        <div className="flex gap-2 flex-wrap">
           {connectorTypes.map((ct) => (
             <div
               key={ct.id}
@@ -94,8 +93,8 @@ function Sidebar({ activeConnectorType, onConnectorTypeChange }) {
       <div className="p-4 border-t text-[10px] text-[#747474] space-y-1" style={{ borderColor: '#E0DCDA' }}>
         <div>Double-click text to edit</div>
         <div>Click images to replace</div>
-        <div>Select node + press Delete to remove</div>
-        <div>Hover node edges for + / × controls</div>
+        <div>Right-click node → delete / colors</div>
+        <div>Right-click connector → change type</div>
       </div>
     </div>
   )

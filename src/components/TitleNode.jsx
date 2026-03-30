@@ -6,19 +6,29 @@ import { ConnectorContext } from '../App'
 function TitleNode({ data, id }) {
   const [title, setTitle] = useState(data.label || 'Title')
   const [editing, setEditing] = useState(false)
-  const [activeHandles, setActiveHandles] = useState(data.activeHandles || ['bottom'])
-  const [handleTypes, setHandleTypes] = useState(data.handleTypes || {})
   const [hovered, setHovered] = useState(false)
-  const activeConnectorType = useContext(ConnectorContext)
+  const { activeConnectorType, onHandleContextMenu } = useContext(ConnectorContext)
+
+  // Local add/remove just for hover UX — actual state is in data
+  const [localHandles, setLocalHandles] = useState(data.activeHandles || ['bottom'])
+  const [localTypes, setLocalTypes] = useState(data.handleTypes || {})
+
+  // Sync from data prop
+  const activeHandles = data.activeHandles || localHandles
+  const handleTypes = data.handleTypes || localTypes
 
   const addHandle = useCallback((edge) => {
-    setActiveHandles((prev) => prev.includes(edge) ? prev : [...prev, edge])
-    setHandleTypes((prev) => ({ ...prev, [edge]: activeConnectorType || 'plain' }))
+    setLocalHandles((prev) => prev.includes(edge) ? prev : [...prev, edge])
+    setLocalTypes((prev) => ({ ...prev, [edge]: activeConnectorType || 'plain' }))
   }, [activeConnectorType])
   const removeHandle = useCallback((edge) => {
-    setActiveHandles((prev) => prev.filter((e) => e !== edge))
-    setHandleTypes((prev) => { const n = { ...prev }; delete n[edge]; return n })
+    setLocalHandles((prev) => prev.filter((e) => e !== edge))
+    setLocalTypes((prev) => { const n = { ...prev }; delete n[edge]; return n })
   }, [])
+
+  const handleCtxMenu = useCallback((e, edge) => {
+    onHandleContextMenu?.(e, id, edge, handleTypes[edge] || 'plain')
+  }, [onHandleContextMenu, id, handleTypes])
 
   return (
     <motion.div
@@ -29,7 +39,7 @@ function TitleNode({ data, id }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <NodeHandles activeHandles={activeHandles} handleTypes={handleTypes} hovered={hovered} onAddHandle={addHandle} onRemoveHandle={removeHandle} />
+      <NodeHandles activeHandles={activeHandles} handleTypes={handleTypes} hovered={hovered} onAddHandle={addHandle} onRemoveHandle={removeHandle} onHandleContextMenu={handleCtxMenu} />
       {editing ? (
         <input
           autoFocus

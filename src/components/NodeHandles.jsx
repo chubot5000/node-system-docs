@@ -2,8 +2,6 @@ import { memo } from 'react'
 import { Handle, Position } from '@xyflow/react'
 
 const positionMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
-// top/left = target, bottom/right = source (standard flow direction, Loose mode still allows any-to-any)
-const handleTypeMap = { top: 'target', bottom: 'source', left: 'target', right: 'source' }
 const allEdges = ['top', 'bottom', 'left', 'right']
 
 const addButtonPositions = {
@@ -20,20 +18,35 @@ const removeButtonOffsets = {
   right: { right: -30, top: '50%', transform: 'translateY(-50%)' },
 }
 
-export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, onRemoveHandle }) {
+// Map connector type to CSS class
+function getHandleClass(cType) {
+  if (!cType || cType === 'plain') return ''
+  if (cType === 'black') return 'handle-black'
+  if (cType === 'additive') return 'handle-additive'
+  if (cType.startsWith('arrow')) return `handle-${cType}`
+  return ''
+}
+
+export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, onRemoveHandle, onHandleContextMenu }) {
   return (
     <>
       {activeHandles.map((edge) => {
         const cType = handleTypes?.[edge] || 'plain'
-        const isFilled = cType === 'black'
-        const cls = isFilled ? 'handle-black' : cType === 'arrow' ? 'handle-arrow' : cType === 'additive' ? 'handle-additive' : ''
+        const cls = getHandleClass(cType)
         return (
           <Handle
             key={edge}
-            type={handleTypeMap[edge]}
+            type="source"
             position={positionMap[edge]}
             id={edge}
+            isConnectableStart={true}
+            isConnectableEnd={true}
             className={cls}
+            onContextMenu={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onHandleContextMenu?.(e, edge)
+            }}
           />
         )
       })}

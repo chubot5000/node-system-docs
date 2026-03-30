@@ -31,18 +31,34 @@ body {
   border-radius: 1.4px !important;
 }
 
+/* Black filled */
 .react-flow__handle.handle-black {
   background: black !important;
 }
 
-/* Arrow connector: brown arrow via background SVG */
-.react-flow__handle.handle-arrow {
-  background: white url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5L10.5 5M10.5 5L7.5 2M10.5 5L7.5 8' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px 10px no-repeat !important;
-}
-
-/* Additive connector: + symbol */
+/* Additive + */
 .react-flow__handle.handle-additive {
   background: white url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 2v10M2 7h10' stroke='%23747474' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") center/14px 14px no-repeat !important;
+}
+
+/* Arrow right → */
+.react-flow__handle.handle-arrow-right {
+  background: white url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5h8M10 5L7.5 2.5M10 5L7.5 7.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px 10px no-repeat !important;
+}
+
+/* Arrow left ← */
+.react-flow__handle.handle-arrow-left {
+  background: white url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 5H4M4 5l2.5-2.5M4 5l2.5 2.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px 10px no-repeat !important;
+}
+
+/* Arrow up ↑ */
+.react-flow__handle.handle-arrow-up {
+  background: white url("data:image/svg+xml,%3Csvg width='10' height='14' viewBox='0 0 10 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 12V4M5 4L2.5 6.5M5 4l2.5 2.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/10px 14px no-repeat !important;
+}
+
+/* Arrow down ↓ */
+.react-flow__handle.handle-arrow-down {
+  background: white url("data:image/svg+xml,%3Csvg width='10' height='14' viewBox='0 0 10 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 2v8M5 10l-2.5-2.5M5 10l2.5-2.5' stroke='%23655343' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/10px 14px no-repeat !important;
 }
 
 .react-flow__minimap { display: none; }
@@ -55,7 +71,7 @@ body {
   left: auto !important;
 }
 
-/* Edge label styling — matches sub-content size (18px), more padding */
+/* Edge label styling */
 .react-flow__edge-textwrapper {
   pointer-events: all;
 }
