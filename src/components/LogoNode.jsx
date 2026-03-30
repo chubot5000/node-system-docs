@@ -1,10 +1,5 @@
-import { useCallback, useContext, useRef, useState } from 'react'
-import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react'
-import { ConnectorContext } from '../App'
-
-const allSides = ['top', 'bottom', 'left', 'right']
-const posMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
-function getHandleCls(t) { return t === 'black' ? 'handle-black' : t === 'additive' ? 'handle-additive' : t?.startsWith('arrow') ? `handle-${t}` : undefined }
+import { useRef, useState } from 'react'
+import NodeWrapper from './NodeWrapper'
 
 const defaultLogo = (
   <svg width="120" height="120" viewBox="0 0 250 250" fill="none">
@@ -16,44 +11,15 @@ const defaultLogo = (
 
 function LogoNode({ data, id }) {
   const [logoSrc, setLogoSrc] = useState(null)
-  const [hovered, setHovered] = useState(false)
-  const [hoveredSide, setHoveredSide] = useState(null)
   const fileRef = useRef()
-  const ctx = useContext(ConnectorContext)
-  const updateNodeInternals = useUpdateNodeInternals()
-
-  const handles = data.activeHandles || ['bottom']
-  const hTypes = data.handleTypes || {}
 
   return (
-    <div
+    <NodeWrapper id={id} data={data} maxPerSide={3}
       onClick={() => fileRef.current?.click()}
-      style={{ width: 250, height: 250, background: data.fillColor || '#655343', borderRadius: 5.6, border: `2px solid ${data.strokeColor || '#655343'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setHoveredSide(null) }}
-    >
-      {handles.map((side) => (
-        <Handle key={side} type="source" position={posMap[side]} id={side}
-          className={getHandleCls(hTypes[side])}
-          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ctx.onHandleContextMenu?.(e, id, side, hTypes[side] || 'plain') }}
-        />
-      ))}
-
-      {hovered && allSides.filter((s) => !handles.includes(s)).map((side) => {
-        const zones = { top: { top: -15, left: '20%', right: '20%', height: 30 }, bottom: { bottom: -15, left: '20%', right: '20%', height: 30 }, left: { left: -15, top: '20%', bottom: '20%', width: 30 }, right: { right: -15, top: '20%', bottom: '20%', width: 30 } }
-        const ghosts = { top: { top: 0, left: '50%', marginLeft: -15 }, bottom: { top: 0, left: '50%', marginLeft: -15 }, left: { left: 0, top: '50%', marginTop: -15 }, right: { left: 0, top: '50%', marginTop: -15 } }
-        return (
-          <div key={side} style={{ position: 'absolute', ...zones[side], zIndex: 5, cursor: 'pointer' }}
-            onMouseEnter={() => setHoveredSide(side)} onMouseLeave={() => setHoveredSide(null)}
-            onClick={(e) => { e.stopPropagation(); ctx.onAddHandle?.(id, side); setTimeout(() => updateNodeInternals(id), 10) }}>
-            {hoveredSide === side && <div style={{ position: 'absolute', ...ghosts[side], width: 30, height: 30, background: 'white', border: '2px solid #747474', borderRadius: 1.4, opacity: 0.45, pointerEvents: 'none' }} />}
-          </div>
-        )
-      })}
-
+      style={{ width: 250, height: 250, background: data.fillColor || '#655343', borderRadius: 5.6, border: `2px solid ${data.strokeColor || '#655343'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
       <input ref={fileRef} type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => setLogoSrc(ev.target.result); r.readAsDataURL(f) } }} style={{ display: 'none' }} />
       {logoSrc ? <img src={logoSrc} alt="" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} /> : defaultLogo}
-    </div>
+    </NodeWrapper>
   )
 }
 

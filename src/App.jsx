@@ -14,6 +14,7 @@ import {
 import '@xyflow/react/dist/style.css'
 
 import Sidebar from './components/Sidebar'
+import LargeTitleNode from './components/LargeTitleNode'
 import TitleNode from './components/TitleNode'
 import TextNode from './components/TextNode'
 import LogoNode from './components/LogoNode'
@@ -21,10 +22,12 @@ import ImageNode from './components/ImageNode'
 import EdgeLabelModal from './components/EdgeLabelModal'
 import ContextMenu from './components/ContextMenu'
 import HandleContextMenu from './components/HandleContextMenu'
+import { nextHandleId, countOnSide } from './utils/handleUtils'
 
 export const ConnectorContext = createContext('plain')
 
 const nodeTypes = {
+  largeTitleNode: LargeTitleNode,
   titleNode: TitleNode,
   textNode: TextNode,
   logoNode: LogoNode,
@@ -40,14 +43,14 @@ const defaultEdgeOptions = {
 }
 
 const initialNodes = [
-  { id: '1', type: 'titleNode', position: { x: 350, y: 60 }, data: { label: 'Data Center', activeHandles: ['bottom'], handleTypes: {} } },
-  { id: '2', type: 'textNode', position: { x: 350, y: 220 }, data: { label: 'Data Center', activeHandles: ['top', 'bottom'], handleTypes: {}, body: 'Choose from a collection of ready-made templates, made by creative professionals and ready for you to customize.\n\nChoose from a collection of ready-made templates, made by creative professionals.' } },
-  { id: '3', type: 'logoNode', position: { x: 800, y: 60 }, data: { activeHandles: ['bottom'], handleTypes: {} } },
-  { id: '4', type: 'imageNode', position: { x: 800, y: 370 }, data: { label: 'GPU', activeHandles: ['bottom'], handleTypes: {} } },
+  { id: '1', type: 'titleNode', position: { x: 350, y: 60 }, data: { label: 'Data Center', activeHandles: ['bottom-0'], handleTypes: {} } },
+  { id: '2', type: 'textNode', position: { x: 350, y: 220 }, data: { label: 'Data Center', activeHandles: ['top-0', 'bottom-0'], handleTypes: {}, body: 'Choose from a collection of ready-made templates, made by creative professionals and ready for you to customize.\n\nChoose from a collection of ready-made templates, made by creative professionals.' } },
+  { id: '3', type: 'logoNode', position: { x: 800, y: 60 }, data: { activeHandles: ['bottom-0'], handleTypes: {} } },
+  { id: '4', type: 'imageNode', position: { x: 800, y: 370 }, data: { label: 'GPU', activeHandles: ['bottom-0'], handleTypes: {} } },
 ]
 
 const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom', targetHandle: 'top', label: 'OWNS', labelBgPadding: [16, 10] },
+  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom-0', targetHandle: 'top-0', label: 'OWNS', labelBgPadding: [16, 10] },
 ]
 
 let id = 5
@@ -62,9 +65,8 @@ function Flow() {
   const [edgeModalPos, setEdgeModalPos] = useState({ x: 0, y: 0 })
   const [activeConnectorType, setActiveConnectorType] = useState('plain')
   const [contextMenu, setContextMenu] = useState(null)
-  const [handleMenu, setHandleMenu] = useState(null) // { x, y, nodeId, edge, currentType }
+  const [handleMenu, setHandleMenu] = useState(null)
   const updateNodeInternals = useUpdateNodeInternals()
-
   const connectingFrom = useRef(null)
 
   const onConnectStart = useCallback((event, params) => {
@@ -76,37 +78,35 @@ function Flow() {
     setEdges((eds) => addEdge({ ...params, style: { stroke: '#747474', strokeWidth: 2 }, labelBgPadding: [16, 10] }, eds))
   }, [setEdges])
 
-  // When a connection drag ends without connecting, check if we're over a node and auto-create a handle + edge
   const onConnectEnd = useCallback((event) => {
     if (!connectingFrom.current || !reactFlowInstance) return
     const from = connectingFrom.current
     connectingFrom.current = null
 
-    // Get the target element under the cursor
     const targetEl = document.elementFromPoint(event.clientX, event.clientY)
     const nodeEl = targetEl?.closest('.react-flow__node')
     if (!nodeEl) return
     const targetNodeId = nodeEl.getAttribute('data-id')
     if (!targetNodeId || targetNodeId === from.nodeId) return
 
-    // Find target node
     const targetNode = nodes.find((n) => n.id === targetNodeId)
     if (!targetNode) return
 
-    // Determine which side of the target node is closest to the cursor
+    const maxPerSide = targetNode.type === 'titleNode' ? 1 : 3
+
     const flowPos = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY })
+    const zoom = reactFlowInstance.getZoom()
     const nodeRect = {
       x: targetNode.position.x,
       y: targetNode.position.y,
-      w: nodeEl.offsetWidth / (reactFlowInstance.getZoom()),
-      h: nodeEl.offsetHeight / (reactFlowInstance.getZoom()),
+      w: nodeEl.offsetWidth / zoom,
+      h: nodeEl.offsetHeight / zoom,
     }
     const cx = nodeRect.x + nodeRect.w / 2
     const cy = nodeRect.y + nodeRect.h / 2
     const dx = flowPos.x - cx
     const dy = flowPos.y - cy
 
-    // Determine closest side based on which edge of the rectangle we're nearest
     let side
     const ratioX = Math.abs(dx) / (nodeRect.w / 2)
     const ratioY = Math.abs(dy) / (nodeRect.h / 2)
@@ -117,29 +117,27 @@ function Flow() {
     }
 
     const activeHandles = targetNode.data.activeHandles || []
-    // If this side already has a handle, just connect to it
-    const handleExists = activeHandles.includes(side)
+    const sideCount = countOnSide(side, activeHandles)
 
-    if (!handleExists) {
-      // Create the handle on the target node
-      setNodes((nds) => nds.map((n) => {
-        if (n.id !== targetNodeId) return n
-        const ah = [...(n.data.activeHandles || []), side]
-        const ht = { ...(n.data.handleTypes || {}), [side]: activeConnectorType || 'plain' }
-        return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
-      }))
-      setTimeout(() => updateNodeInternals(targetNodeId), 0)
-    }
+    if (sideCount >= maxPerSide) return // side full
 
-    // Create the edge after a tick so React Flow registers the new handle
+    const newHandleId = nextHandleId(side, activeHandles)
+    if (!newHandleId) return
+
+    setNodes((nds) => nds.map((n) => {
+      if (n.id !== targetNodeId) return n
+      const ah = [...(n.data.activeHandles || []), newHandleId]
+      const ht = { ...(n.data.handleTypes || {}), [newHandleId]: activeConnectorType || 'plain' }
+      return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
+    }))
+    setTimeout(() => updateNodeInternals(targetNodeId), 0)
+
     setTimeout(() => {
-      const sourceHandle = from.handleId
-      const targetHandle = side
       setEdges((eds) => addEdge({
         source: from.nodeId,
-        sourceHandle,
+        sourceHandle: from.handleId,
         target: targetNodeId,
-        targetHandle,
+        targetHandle: newHandleId,
         style: { stroke: '#747474', strokeWidth: 2 },
         labelBgPadding: [16, 10],
       }, eds))
@@ -156,12 +154,13 @@ function Flow() {
     const type = event.dataTransfer.getData('application/reactflow')
     if (!type || !reactFlowInstance) return
     const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY })
+    const label = type === 'largeTitleNode' ? 'Large Title' : type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : ''
     setNodes((nds) => nds.concat({
       id: getId(), type, position,
       data: {
-        label: type === 'titleNode' ? 'New Title' : type === 'textNode' ? 'New Section' : type === 'imageNode' ? 'Image' : '',
+        label,
         body: type === 'textNode' ? 'Double-click to edit this text content.' : undefined,
-        activeHandles: ['bottom'], handleTypes: {},
+        activeHandles: ['bottom-0'], handleTypes: {},
       },
     }))
   }, [reactFlowInstance, setNodes])
@@ -186,10 +185,8 @@ function Flow() {
     setHandleMenu(null)
   }, [])
 
-  // Right-click on node (not on handle)
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault()
-    // Check if right-click was on a handle — if so, don't show node menu
     if (event.target.closest('.react-flow__handle')) return
     setHandleMenu(null)
     setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor })
@@ -208,46 +205,42 @@ function Flow() {
     setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, strokeColor: color } } : n))
   }, [setNodes])
 
-  // Add a handle to a node (called from node components via context)
-  const onAddHandle = useCallback((nodeId, edge) => {
+  const onAddHandle = useCallback((nodeId, handleId) => {
     setNodes((nds) => nds.map((n) => {
       if (n.id !== nodeId) return n
-      if (n.data.activeHandles.includes(edge)) return n
-      const ah = [...n.data.activeHandles, edge]
-      const ht = { ...n.data.handleTypes, [edge]: activeConnectorType || 'plain' }
+      if (n.data.activeHandles.includes(handleId)) return n
+      const ah = [...n.data.activeHandles, handleId]
+      const ht = { ...n.data.handleTypes, [handleId]: activeConnectorType || 'plain' }
       return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
     }))
-    // Tell React Flow about the new handle
     setTimeout(() => updateNodeInternals(nodeId), 0)
   }, [setNodes, activeConnectorType, updateNodeInternals])
 
-  // Handle context menu — called from within node components
-  const onHandleContextMenu = useCallback((event, nodeId, edge, currentType) => {
+  const onHandleContextMenu = useCallback((event, nodeId, handleId, currentType) => {
     setContextMenu(null)
-    setHandleMenu({ x: event.clientX, y: event.clientY, nodeId, edge, currentType })
+    setHandleMenu({ x: event.clientX, y: event.clientY, nodeId, handleId, currentType })
   }, [])
 
-  const onHandleTypeChange = useCallback((nodeId, edge, newType) => {
+  const onHandleTypeChange = useCallback((nodeId, handleId, newType) => {
     setNodes((nds) => nds.map((n) => {
       if (n.id !== nodeId) return n
-      const ht = { ...n.data.handleTypes, [edge]: newType }
+      const ht = { ...n.data.handleTypes, [handleId]: newType }
       return { ...n, data: { ...n.data, handleTypes: ht } }
     }))
     setTimeout(() => updateNodeInternals(nodeId), 0)
   }, [setNodes, updateNodeInternals])
 
-  const onRemoveHandle = useCallback((nodeId, edge) => {
+  const onRemoveHandle = useCallback((nodeId, handleId) => {
     setNodes((nds) => nds.map((n) => {
       if (n.id !== nodeId) return n
-      const ah = n.data.activeHandles.filter((e) => e !== edge)
+      const ah = n.data.activeHandles.filter((h) => h !== handleId)
       const ht = { ...n.data.handleTypes }
-      delete ht[edge]
+      delete ht[handleId]
       return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
     }))
-    // Remove edges connected to that handle
     setEdges((eds) => eds.filter((e) => {
-      if (e.source === nodeId && e.sourceHandle === edge) return false
-      if (e.target === nodeId && e.targetHandle === edge) return false
+      if (e.source === nodeId && e.sourceHandle === handleId) return false
+      if (e.target === nodeId && e.targetHandle === handleId) return false
       return true
     }))
     setTimeout(() => updateNodeInternals(nodeId), 0)
@@ -319,8 +312,8 @@ function Flow() {
           <HandleContextMenu
             x={handleMenu.x} y={handleMenu.y}
             currentType={handleMenu.currentType || 'plain'}
-            onSelect={(type) => onHandleTypeChange(handleMenu.nodeId, handleMenu.edge, type)}
-            onRemove={() => onRemoveHandle(handleMenu.nodeId, handleMenu.edge)}
+            onSelect={(type) => onHandleTypeChange(handleMenu.nodeId, handleMenu.handleId, type)}
+            onRemove={() => onRemoveHandle(handleMenu.nodeId, handleMenu.handleId)}
             onClose={() => setHandleMenu(null)}
           />
         )}

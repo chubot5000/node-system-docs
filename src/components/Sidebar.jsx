@@ -1,7 +1,12 @@
 import { memo } from 'react'
 
 const nodeTypes = [
-  { type: 'titleNode', label: 'Title Node', icon: (
+  { type: 'largeTitleNode', label: 'Large Title', icon: (
+    <div className="w-14 h-14 border-2 border-[#747474] rounded bg-white flex items-center justify-center">
+      <span className="text-[11px] font-bold text-[#747474]">Title</span>
+    </div>
+  )},
+  { type: 'titleNode', label: 'Small Title', icon: (
     <div className="w-full h-8 border-2 border-[#747474] rounded bg-white flex items-center justify-center">
       <span className="text-[10px] font-bold text-[#747474]">Title</span>
     </div>
