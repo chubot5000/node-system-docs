@@ -85,7 +85,7 @@ function ExportPanel({ canvasW, canvasH, onCanvasChange }) {
       position: 'fixed', bottom: 20, right: 20, zIndex: 50,
       background: 'white', borderRadius: 12, border: '1px solid #E0DCDA',
       boxShadow: '0 4px 24px rgba(0,0,0,0.1)', padding: '16px 20px',
-      fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column', gap: 12,
+      fontFamily: 'SwissNow, Inter, sans-serif', display: 'flex', flexDirection: 'column', gap: 12,
       minWidth: 240,
     }}>
       {/* Resolution */}

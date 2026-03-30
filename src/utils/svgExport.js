@@ -189,8 +189,7 @@ export function generateVectorSvg(rfInstance, canvasW, canvasH) {
 <svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}">
 <defs>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap');
-    text { font-family: 'Inter', sans-serif; }
+    text { font-family: 'SwissNow', 'Inter', sans-serif; }
   </style>
 </defs>
 <rect width="${canvasW}" height="${canvasH}" fill="white"/>

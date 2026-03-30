@@ -356,7 +356,7 @@ function Flow() {
             connectionMode={ConnectionMode.Loose}
             selectionOnDrag
             selectionMode={SelectionMode.Partial}
-            panOnDrag={[1, 2]}
+            panOnDrag={[1]}
             panOnScroll
             snapToGrid
             snapGrid={[15, 15]}

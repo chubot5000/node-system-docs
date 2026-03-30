@@ -44,7 +44,7 @@ function HandleContextMenu({ x, y, currentType, onSelect, onRemove, onClose }) {
         position: 'fixed', left: x, top: y, zIndex: 100,
         background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
         boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 180, padding: '6px 0',
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'SwissNow, Inter, sans-serif',
       }}
     >
       <div style={{ padding: '4px 16px 6px', fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>

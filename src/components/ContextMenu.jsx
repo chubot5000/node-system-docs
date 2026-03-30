@@ -22,7 +22,7 @@ function ContextMenu({ x, y, nodeId, currentFill, currentStroke, onClose, onDele
         position: 'fixed', left: x, top: y, zIndex: 100,
         background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
         boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 180, padding: '6px 0',
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'SwissNow, Inter, sans-serif',
       }}
     >
       <div

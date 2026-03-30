@@ -33,7 +33,7 @@ function Section({ title, defaultOpen = true, children }) {
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer',
           fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase',
-          letterSpacing: '0.06em', fontFamily: 'Inter, sans-serif',
+          letterSpacing: '0.06em', fontFamily: 'SwissNow, Inter, sans-serif',
         }}
       >
         {title}
@@ -131,13 +131,13 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
     color: active ? 'white' : '#655343',
     background: active ? '#655343' : 'white',
     border: '1px solid #E0DCDA', borderRadius: 4, cursor: 'pointer',
-    fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', flex: 1,
+    fontFamily: 'SwissNow, Inter, sans-serif', textTransform: 'uppercase', flex: 1,
   })
 
   return (
     <div style={{
       width: 220, height: '100%', background: 'white', borderLeft: '1px solid #EDEAE7',
-      display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif',
+      display: 'flex', flexDirection: 'column', fontFamily: 'SwissNow, Inter, sans-serif',
       flexShrink: 0, overflow: 'hidden',
     }}>
       {/* Header */}
@@ -182,7 +182,7 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
             style={{
               width: '100%', padding: '5px 8px', fontSize: 12, color: '#655343',
               border: '1px solid #E0DCDA', borderRadius: 5, background: 'white',
-              cursor: 'pointer', outline: 'none', fontFamily: 'Inter, sans-serif',
+              cursor: 'pointer', outline: 'none', fontFamily: 'SwissNow, Inter, sans-serif',
             }}
           >
             {resolutions.map(r => (
@@ -211,7 +211,7 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
             style={{
               width: '100%', padding: '7px 0', fontSize: 12, fontWeight: 600, color: 'white',
               background: exporting ? '#999' : '#655343', border: 'none', borderRadius: 5,
-              cursor: exporting ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
+              cursor: exporting ? 'wait' : 'pointer', fontFamily: 'SwissNow, Inter, sans-serif',
             }}
           >
             {exporting ? 'Exporting…' : `Export ${format.toUpperCase()}`}
