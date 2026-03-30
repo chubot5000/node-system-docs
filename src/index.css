@@ -71,12 +71,6 @@ body {
   z-index: 1 !important;
 }
 
-.react-flow__handle.ghost-handle {
-  opacity: 0.45 !important;
-  cursor: crosshair !important;
-  z-index: 5 !important;
-}
-
 .react-flow__minimap { display: none; }
 .react-flow__controls { display: none !important; }
 
