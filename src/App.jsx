@@ -565,31 +565,46 @@ function Flow() {
     }
     if (event.target.closest('.react-flow__handle')) return
     setHandleMenu(null)
-    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor })
-  }, [reactFlowInstance])
+    const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
+    const multiCount = sel.some((n) => n.id === node.id) ? sel.length : 1
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor, multiCount })
+  }, [reactFlowInstance, nodes])
+
+  /* Get target node IDs: all selected if the clicked node is selected, otherwise just the clicked node */
+  const getTargetIds = useCallback((nodeId) => {
+    const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
+    if (sel.some((n) => n.id === nodeId)) return sel.map((n) => n.id)
+    return [nodeId]
+  }, [nodes])
 
   const onRemoveAllHandles = useCallback((nodeId) => {
+    const ids = getTargetIds(nodeId)
+    const idSet = new Set(ids)
     setNodes((nds) => nds.map((n) => {
-      if (n.id !== nodeId) return n
+      if (!idSet.has(n.id)) return n
       return { ...n, data: { ...n.data, activeHandles: [], handleTypes: {} } }
     }))
-    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
-    setTimeout(() => updateNodeInternals(nodeId), 0)
-  }, [setNodes, setEdges, updateNodeInternals])
+    setEdges((eds) => eds.filter((e) => !idSet.has(e.source) && !idSet.has(e.target)))
+    ids.forEach((id) => setTimeout(() => updateNodeInternals(id), 0))
+  }, [getTargetIds, setNodes, setEdges, updateNodeInternals])
 
   const onDuplicateNode = useCallback((nodeId) => {
+    const ids = getTargetIds(nodeId)
     setNodes((nds) => {
-      const original = nds.find((n) => n.id === nodeId)
-      if (!original || isSpecialNode(original)) return nds
-      return nds.concat({
-        ...original,
-        id: getId(),
-        position: { x: original.position.x + 50, y: original.position.y + 50 },
-        selected: false,
-        data: { ...original.data, activeHandles: [...original.data.activeHandles], handleTypes: { ...original.data.handleTypes } },
-      })
+      const clones = ids.map((id) => {
+        const original = nds.find((n) => n.id === id)
+        if (!original || isSpecialNode(original)) return null
+        return {
+          ...original,
+          id: getId(),
+          position: { x: original.position.x + 50, y: original.position.y + 50 },
+          selected: false,
+          data: { ...original.data, activeHandles: [...original.data.activeHandles], handleTypes: { ...original.data.handleTypes } },
+        }
+      }).filter(Boolean)
+      return nds.concat(clones)
     })
-  }, [setNodes])
+  }, [getTargetIds, setNodes])
 
   /* Duplicate selected nodes with offset */
   const duplicateSelected = useCallback(() => {
@@ -609,18 +624,24 @@ function Flow() {
   }, [setNodes])
 
   const onDeleteNode = useCallback((nodeId) => {
-    if (isSpecialNode({id: nodeId})) return
-    setNodes((nds) => nds.filter((n) => n.id !== nodeId))
-    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
-  }, [setNodes, setEdges])
+    const ids = getTargetIds(nodeId)
+    const idSet = new Set(ids.filter((id) => !isSpecialNode({ id })))
+    if (!idSet.size) return
+    setNodes((nds) => nds.filter((n) => !idSet.has(n.id)))
+    setEdges((eds) => eds.filter((e) => !idSet.has(e.source) && !idSet.has(e.target)))
+  }, [getTargetIds, setNodes, setEdges])
 
   const onFillChange = useCallback((nodeId, color) => {
-    setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, fillColor: color } } : n))
-  }, [setNodes])
+    const ids = getTargetIds(nodeId)
+    const idSet = new Set(ids)
+    setNodes((nds) => nds.map((n) => idSet.has(n.id) ? { ...n, data: { ...n.data, fillColor: color } } : n))
+  }, [getTargetIds, setNodes])
 
   const onStrokeChange = useCallback((nodeId, color) => {
-    setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, strokeColor: color } } : n))
-  }, [setNodes])
+    const ids = getTargetIds(nodeId)
+    const idSet = new Set(ids)
+    setNodes((nds) => nds.map((n) => idSet.has(n.id) ? { ...n, data: { ...n.data, strokeColor: color } } : n))
+  }, [getTargetIds, setNodes])
 
   const onAddHandle = useCallback((nodeId, handleId) => {
     setNodes((nds) => nds.map((n) => {
