@@ -1,6 +1,7 @@
 import { memo, useState, useCallback } from 'react'
 import { toPng } from 'html-to-image'
 import { getViewportForBounds, useReactFlow } from '@xyflow/react'
+import { generateVectorSvg } from '../utils/svgExport'
 import { Heading1, Heading2, AlignLeft, Hexagon, Image } from 'lucide-react'
 
 const resolutions = [
@@ -49,7 +50,8 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
   const [format, setFormat] = useState('png')
   const [scale, setScale] = useState(1)
   const [exporting, setExporting] = useState(false)
-  const { zoomIn, zoomOut, fitView, getZoom } = useReactFlow()
+  const rfInstance = useReactFlow()
+  const { zoomIn, zoomOut, fitView, getZoom } = rfInstance
   const [zoom, setZoom] = useState(100)
 
   const onDragStart = (event, nodeType) => {
@@ -64,63 +66,62 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
   const doExport = async () => {
     setExporting(true)
     try {
-      const viewport = document.querySelector('.react-flow__viewport')
-      if (!viewport) return
-
-      const bounds = { x: 0, y: 0, width: canvasW, height: canvasH }
-      const pixelW = canvasW * scale
-      const pixelH = canvasH * scale
-      const transform = getViewportForBounds(bounds, pixelW, pixelH, 0.5, scale * 2)
-
-      const frame = viewport.querySelector('.canvas-frame')
-      let origBorder, origShadow
-      if (frame) {
-        origBorder = frame.style.border
-        origShadow = frame.style.boxShadow
-        frame.style.border = 'none'
-        frame.style.boxShadow = 'none'
-      }
-
-      const options = {
-        width: pixelW, height: pixelH,
-        style: {
-          width: `${pixelW}px`, height: `${pixelH}px`,
-          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
-        },
-        backgroundColor: 'white',
-        filter: (node) => {
-          if (node?.classList?.contains('react-flow__background')) return false
-          if (node?.classList?.contains('react-flow__controls')) return false
-          return true
-        },
-      }
-
-      const pngDataUrl = await toPng(viewport, options)
-
-      if (frame) { frame.style.border = origBorder; frame.style.boxShadow = origShadow }
-
-      let downloadUrl, filename
       if (format === 'svg') {
-        // Wrap the rasterized PNG in a proper SVG — foreignObject SVGs don't render in most viewers
-        const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${pixelW}" height="${pixelH}" viewBox="0 0 ${pixelW} ${pixelH}">
-  <image width="${pixelW}" height="${pixelH}" href="${pngDataUrl}"/>
-</svg>`
+        // True vector SVG — every element is selectable/editable in Figma
+        const svgContent = generateVectorSvg(rfInstance, canvasW, canvasH)
         const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' })
-        downloadUrl = URL.createObjectURL(blob)
-        filename = `canvas-${canvasW}x${canvasH}@${scale}x.svg`
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `canvas-${canvasW}x${canvasH}.svg`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
       } else {
-        downloadUrl = pngDataUrl
-        filename = `canvas-${canvasW}x${canvasH}@${scale}x.png`
-      }
+        // PNG raster export at specified scale
+        const viewport = document.querySelector('.react-flow__viewport')
+        if (!viewport) return
 
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      if (format === 'svg') URL.revokeObjectURL(downloadUrl)
+        const pixelW = canvasW * scale
+        const pixelH = canvasH * scale
+        const transform = getViewportForBounds(
+          { x: 0, y: 0, width: canvasW, height: canvasH },
+          pixelW, pixelH, 0.5, scale * 2
+        )
+
+        const frame = viewport.querySelector('.canvas-frame')
+        let origBorder, origShadow
+        if (frame) {
+          origBorder = frame.style.border
+          origShadow = frame.style.boxShadow
+          frame.style.border = 'none'
+          frame.style.boxShadow = 'none'
+        }
+
+        const pngDataUrl = await toPng(viewport, {
+          width: pixelW, height: pixelH,
+          style: {
+            width: `${pixelW}px`, height: `${pixelH}px`,
+            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+          },
+          backgroundColor: 'white',
+          filter: (node) => {
+            if (node?.classList?.contains('react-flow__background')) return false
+            if (node?.classList?.contains('react-flow__controls')) return false
+            return true
+          },
+        })
+
+        if (frame) { frame.style.border = origBorder; frame.style.boxShadow = origShadow }
+
+        const a = document.createElement('a')
+        a.href = pngDataUrl
+        a.download = `canvas-${canvasW}x${canvasH}@${scale}x.png`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
     } catch (e) { console.error('Export failed:', e) }
     setExporting(false)
   }
