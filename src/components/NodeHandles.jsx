@@ -4,11 +4,11 @@ import { Handle, Position } from '@xyflow/react'
 const positionMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
 const allEdges = ['top', 'bottom', 'left', 'right']
 
-const addButtonPositions = {
-  top: { top: -12, left: '50%', transform: 'translateX(-50%)' },
-  bottom: { bottom: -12, left: '50%', transform: 'translateX(-50%)' },
-  left: { left: -12, top: '50%', transform: 'translateY(-50%)' },
-  right: { right: -12, top: '50%', transform: 'translateY(-50%)' },
+const ghostPositions = {
+  top: { top: 0, left: '50%', transform: 'translate(-50%, -50%)' },
+  bottom: { bottom: 0, left: '50%', transform: 'translate(-50%, 50%)' },
+  left: { left: 0, top: '50%', transform: 'translate(-50%, -50%)' },
+  right: { right: 0, top: '50%', transform: 'translate(50%, -50%)' },
 }
 
 const removeButtonOffsets = {
@@ -18,7 +18,6 @@ const removeButtonOffsets = {
   right: { right: -30, top: '50%', transform: 'translateY(-50%)' },
 }
 
-// Map connector type to CSS class
 function getHandleClass(cType) {
   if (!cType || cType === 'plain') return ''
   if (cType === 'black') return 'handle-black'
@@ -30,40 +29,50 @@ function getHandleClass(cType) {
 export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, onRemoveHandle, onHandleContextMenu }) {
   return (
     <>
+      {/* Each active edge gets TWO overlapping handles: source + target */}
       {activeHandles.map((edge) => {
         const cType = handleTypes?.[edge] || 'plain'
         const cls = getHandleClass(cType)
         return (
-          <Handle
-            key={edge}
-            type="source"
-            position={positionMap[edge]}
-            id={edge}
-            isConnectableStart={true}
-            isConnectableEnd={true}
-            className={cls}
-            onContextMenu={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onHandleContextMenu?.(e, edge)
-            }}
-          />
+          <div key={edge}>
+            <Handle
+              type="source"
+              position={positionMap[edge]}
+              id={`${edge}-src`}
+              className={cls}
+              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onHandleContextMenu?.(e, edge) }}
+            />
+            <Handle
+              type="target"
+              position={positionMap[edge]}
+              id={`${edge}-tgt`}
+              className={`${cls} handle-overlay`}
+              onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onHandleContextMenu?.(e, edge) }}
+            />
+          </div>
         )
       })}
 
+      {/* Ghost connector previews on hover for edges without handles */}
       {hovered && allEdges.filter((e) => !activeHandles.includes(e)).map((edge) => (
         <div
-          key={`add-${edge}`}
+          key={`ghost-${edge}`}
           onClick={(e) => { e.stopPropagation(); onAddHandle(edge) }}
           style={{
-            position: 'absolute', ...addButtonPositions[edge],
-            width: 18, height: 18, background: 'white', border: '1.5px solid #747474',
-            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', zIndex: 10, fontSize: 12, lineHeight: 1, color: '#747474', fontWeight: 'bold',
+            position: 'absolute', ...ghostPositions[edge],
+            width: 30, height: 30,
+            background: 'white', border: '2px solid #747474',
+            borderRadius: 1.4,
+            opacity: 0.4,
+            cursor: 'pointer', zIndex: 10,
+            transition: 'opacity 0.15s',
           }}
-        >+</div>
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
+        />
       ))}
 
+      {/* Remove buttons on hover */}
       {hovered && activeHandles.map((edge) => (
         <div
           key={`rm-${edge}`}

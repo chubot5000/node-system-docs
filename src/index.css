@@ -31,6 +31,16 @@ body {
   border-radius: 1.4px !important;
 }
 
+/* Overlay target handle — same position, invisible border/bg so it doesn't double-render */
+.react-flow__handle.handle-overlay {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.react-flow__handle.handle-overlay.handle-black {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
 /* Black filled */
 .react-flow__handle.handle-black {
   background: black !important;
