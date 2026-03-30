@@ -1,6 +1,7 @@
 import { memo, useState, useCallback } from 'react'
 import { toPng, toSvg } from 'html-to-image'
 import { getViewportForBounds, useReactFlow } from '@xyflow/react'
+import { Heading1, Heading2, AlignLeft, Hexagon, Image } from 'lucide-react'
 
 const resolutions = [
   { label: 'HD (1920×1080)', w: 1920, h: 1080 },
@@ -11,41 +12,12 @@ const resolutions = [
   { label: 'Twitter/X (1600×900)', w: 1600, h: 900 },
 ]
 
-const nodeTypes = [
-  { type: 'largeTitleNode', label: 'Large Title', icon: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="1" width="18" height="18" rx="1" stroke="#747474" strokeWidth="1.5"/>
-      <text x="10" y="14" textAnchor="middle" fill="#655343" fontSize="11" fontWeight="700" fontFamily="Inter">T</text>
-    </svg>
-  )},
-  { type: 'titleNode', label: 'Small Title', icon: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="5" width="18" height="10" rx="1" stroke="#747474" strokeWidth="1.5"/>
-      <text x="10" y="14" textAnchor="middle" fill="#655343" fontSize="9" fontWeight="700" fontFamily="Inter">T</text>
-    </svg>
-  )},
-  { type: 'textNode', label: 'Text', icon: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="1" width="18" height="18" rx="1" stroke="#747474" strokeWidth="1.5"/>
-      <line x1="5" y1="6" x2="15" y2="6" stroke="#747474" strokeWidth="1.2"/>
-      <line x1="5" y1="9.5" x2="15" y2="9.5" stroke="#747474" strokeWidth="1.2"/>
-      <line x1="5" y1="13" x2="12" y2="13" stroke="#747474" strokeWidth="1.2"/>
-    </svg>
-  )},
-  { type: 'logoNode', label: 'Logo', icon: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="1" width="18" height="18" rx="1" fill="#655343" stroke="#655343" strokeWidth="1.5"/>
-      <path d="M10 5L14 9L12.5 11L10 8.5L7.5 11L6 9L10 5Z" fill="white"/>
-      <path d="M10 9L12 11.5L11 13L10 12L9 13L8 11.5L10 9Z" fill="white"/>
-    </svg>
-  )},
-  { type: 'imageNode', label: 'Image', icon: (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="1" width="18" height="18" rx="1" stroke="#747474" strokeWidth="1.5"/>
-      <circle cx="7" cy="7" r="1.5" fill="#747474"/>
-      <path d="M2 15l5-5 4 4 2-2 5 5H2z" fill="#E6D9CE" stroke="#747474" strokeWidth="0.8"/>
-    </svg>
-  )},
+export const nodeTypeList = [
+  { type: 'largeTitleNode', label: 'Large Title', Icon: Heading1 },
+  { type: 'titleNode', label: 'Small Title', Icon: Heading2 },
+  { type: 'textNode', label: 'Text', Icon: AlignLeft },
+  { type: 'logoNode', label: 'Logo', Icon: Hexagon },
+  { type: 'imageNode', label: 'Image', Icon: Image },
 ]
 
 const scales = [1, 2, 4]
@@ -162,7 +134,7 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
         {/* Nodes */}
         <Section title="Nodes">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
-            {nodeTypes.map((nt) => (
+            {nodeTypeList.map((nt) => (
               <div
                 key={nt.type}
                 draggable
@@ -176,7 +148,7 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#E0DCDA'; e.currentTarget.style.background = '#FAFAF9' }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }}
               >
-                {nt.icon}
+                <nt.Icon size={16} color="#655343" strokeWidth={1.8} />
               </div>
             ))}
           </div>

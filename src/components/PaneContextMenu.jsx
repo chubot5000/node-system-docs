@@ -1,12 +1,5 @@
 import { memo, useRef, useEffect } from 'react'
-
-const nodeOptions = [
-  { type: 'largeTitleNode', label: 'Large Title' },
-  { type: 'titleNode', label: 'Small Title' },
-  { type: 'textNode', label: 'Text Node' },
-  { type: 'logoNode', label: 'Logo Node' },
-  { type: 'imageNode', label: 'Image Node' },
-]
+import { nodeTypeList } from './RightPanel'
 
 function PaneContextMenu({ x, y, onSelect, onClose }) {
   const ref = useRef()
@@ -32,14 +25,15 @@ function PaneContextMenu({ x, y, onSelect, onClose }) {
       <div style={{ padding: '4px 16px 6px', fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         Add Node
       </div>
-      {nodeOptions.map((opt) => (
+      {nodeTypeList.map((opt) => (
         <div
           key={opt.type}
           onClick={() => { onSelect(opt.type); onClose() }}
-          style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 13, color: '#655343' }}
+          style={{ padding: '7px 16px', cursor: 'pointer', fontSize: 13, color: '#655343', display: 'flex', alignItems: 'center', gap: 10 }}
           onMouseEnter={(e) => e.currentTarget.style.background = '#f5f3f0'}
           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
         >
+          <opt.Icon size={15} color="#655343" strokeWidth={1.8} />
           {opt.label}
         </div>
       ))}
