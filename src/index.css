@@ -93,12 +93,17 @@ body {
 }
 
 /* Canvas frame node — no selection ring, no padding */
-.react-flow__node[data-id="__canvas__"],
-.react-flow__node[data-id^="bridge-"] {
+.react-flow__node[data-id="__canvas__"] {
   padding: 0 !important;
   border: none !important;
   box-shadow: none !important;
   pointer-events: none !important;
+}
+.react-flow__node[data-id^="bridge-"] {
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  /* pointer-events enabled for right-click context menu */
 }
 .react-flow__node[data-id="__canvas__"].selected,
 .react-flow__node[data-id="__canvas__"]:focus,

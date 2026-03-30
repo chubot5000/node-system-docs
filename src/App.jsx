@@ -31,13 +31,12 @@ export const ConnectorContext = createContext('plain')
 
 function BridgeNode() {
   return (
-    <div style={{
+    <div className="bridge-connector-visual" style={{
       width: 30, height: 30, background: 'white',
       border: '2px solid #747474', borderRadius: 1.4,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 16, fontWeight: 700, color: '#747474',
       fontFamily: 'Inter, sans-serif',
-      pointerEvents: 'none',
     }}>+</div>
   )
 }
@@ -214,12 +213,61 @@ function Flow() {
     }))
   }, [reactFlowInstance, setNodes])
 
-  /* ── Snap & Bridge: single additive connector bridging two nodes (no edges) ── */
+  /* ── Snap & Bridge: overlapping connector + group drag ── */
   const SNAP_THRESHOLD = 50
-  const BRIDGE_GAP = 30  // connector size
+  const BRIDGE_SIZE = 30
+  const BRIDGE_OVERLAP = 10  // connector overlaps 10px into each node
+  const BRIDGE_GAP = BRIDGE_SIZE - BRIDGE_OVERLAP * 2  // actual gap = 10px
   const [bridges, setBridges] = useState([])  // { id, nodeA, nodeB, side }
+  const [bridgeMenu, setBridgeMenu] = useState(null) // right-click bridge context menu
+  const dragStartPos = useRef({})  // track drag start for group movement
+
+  /* Find all nodes in the same bridge group (connected transitively) */
+  const getBridgeGroup = useCallback((nodeId) => {
+    const group = new Set([nodeId])
+    let changed = true
+    while (changed) {
+      changed = false
+      for (const b of bridges) {
+        if (group.has(b.nodeA) && !group.has(b.nodeB)) { group.add(b.nodeB); changed = true }
+        if (group.has(b.nodeB) && !group.has(b.nodeA)) { group.add(b.nodeA); changed = true }
+      }
+    }
+    return group
+  }, [bridges])
+
+  /* On drag start: record starting positions for group movement */
+  const onNodeDragStart = useCallback((event, draggedNode) => {
+    if (isSpecialNode(draggedNode)) return
+    const group = getBridgeGroup(draggedNode.id)
+    if (group.size <= 1) return
+    const positions = {}
+    for (const nId of group) {
+      const n = reactFlowInstance?.getNode(nId)
+      if (n) positions[nId] = { x: n.position.x, y: n.position.y }
+    }
+    positions.__draggedId = draggedNode.id
+    positions.__startX = draggedNode.position.x
+    positions.__startY = draggedNode.position.y
+    dragStartPos.current = positions
+  }, [getBridgeGroup, reactFlowInstance])
+
+  /* On drag: move entire bridge group together */
+  const onNodeDrag = useCallback((event, draggedNode) => {
+    const pos = dragStartPos.current
+    if (!pos.__draggedId || pos.__draggedId !== draggedNode.id) return
+
+    const dx = draggedNode.position.x - pos.__startX
+    const dy = draggedNode.position.y - pos.__startY
+
+    setNodes((nds) => nds.map((n) => {
+      if (n.id === draggedNode.id || !pos[n.id]) return n
+      return { ...n, position: { x: pos[n.id].x + dx, y: pos[n.id].y + dy } }
+    }))
+  }, [setNodes])
 
   const onNodeDragStop = useCallback((event, draggedNode) => {
+    dragStartPos.current = {}
     if (draggedNode.id === CANVAS_ID || draggedNode.id.startsWith('bridge-') || !reactFlowInstance) return
 
     const dNode = reactFlowInstance.getNode(draggedNode.id)
@@ -229,9 +277,14 @@ function Flow() {
     const dX = dNode.position.x
     const dY = dNode.position.y
 
+    // Don't snap if already bridged (group is moving)
+    const group = getBridgeGroup(draggedNode.id)
     const allNodes = reactFlowInstance.getNodes()
+
     for (const other of allNodes) {
       if (other.id === CANVAS_ID || other.id.startsWith('bridge-') || other.id === dNode.id) continue
+      // Skip if other is in the same bridge group
+      if (group.has(other.id)) continue
 
       const oW = other.measured?.width ?? 250
       const oH = other.measured?.height ?? 83
@@ -274,7 +327,6 @@ function Flow() {
 
       if (!snapSide) continue
 
-      // Check if bridge already exists between these two
       const existing = bridges.find((b) =>
         (b.nodeA === dNode.id && b.nodeB === other.id) ||
         (b.nodeA === other.id && b.nodeB === dNode.id)
@@ -284,18 +336,30 @@ function Flow() {
         break
       }
 
-      // Snap position and create bridge
-      setNodes((nds) => nds.map((n) => n.id === dNode.id ? { ...n, position: { x: newX, y: newY } } : n))
+      // Snap the entire group by the same delta
+      const dx = newX - dX
+      const dy = newY - dY
+      setNodes((nds) => nds.map((n) => {
+        if (n.id === dNode.id) return { ...n, position: { x: newX, y: newY } }
+        if (group.has(n.id)) return { ...n, position: { x: n.position.x + dx, y: n.position.y + dy } }
+        return n
+      }))
+
       setBridges((prev) => [...prev, {
         id: `bridge-${dNode.id}-${other.id}`,
         nodeA: dNode.id,
         nodeB: other.id,
-        side: snapSide,  // side of nodeA facing nodeB
+        side: snapSide,
       }])
 
       break
     }
-  }, [reactFlowInstance, bridges, setNodes])
+  }, [reactFlowInstance, bridges, getBridgeGroup, setNodes])
+
+  /* Remove bridge by id */
+  const removeBridge = useCallback((bridgeId) => {
+    setBridges((prev) => prev.filter((b) => b.id !== bridgeId))
+  }, [])
 
   // Remove bridges when either node is deleted
   useEffect(() => {
@@ -303,47 +367,44 @@ function Flow() {
     setBridges((prev) => prev.filter((b) => nodeIds.has(b.nodeA) && nodeIds.has(b.nodeB)))
   }, [nodes])
 
-  // Sync bridge nodes into the nodes array based on current positions
+  // Sync bridge connector nodes into the nodes array
   useEffect(() => {
     if (!reactFlowInstance) return
     setNodes((nds) => {
-      // Remove old bridge nodes
       const filtered = nds.filter((n) => !n.id.startsWith('bridge-'))
-      // Add bridge nodes at computed positions
       const bridgeNodes = bridges.map((b) => {
-        const nA = nds.find((n) => n.id === b.nodeA)
-        const nB = nds.find((n) => n.id === b.nodeB)
-        if (!nA || !nB) return null
-
+        const nA = filtered.find((n) => n.id === b.nodeA)
+        if (!nA) return null
         const aW = nA.measured?.width ?? 250
         const aH = nA.measured?.height ?? 83
 
+        // Connector overlaps into each node by BRIDGE_OVERLAP
         let cx, cy
         if (b.side === 'right') {
-          cx = nA.position.x + aW
-          cy = nA.position.y + aH / 2 - BRIDGE_GAP / 2
+          cx = nA.position.x + aW - BRIDGE_OVERLAP
+          cy = nA.position.y + aH / 2 - BRIDGE_SIZE / 2
         } else if (b.side === 'left') {
-          cx = nA.position.x - BRIDGE_GAP
-          cy = nA.position.y + aH / 2 - BRIDGE_GAP / 2
+          cx = nA.position.x - BRIDGE_SIZE + BRIDGE_OVERLAP
+          cy = nA.position.y + aH / 2 - BRIDGE_SIZE / 2
         } else if (b.side === 'bottom') {
-          cx = nA.position.x + aW / 2 - BRIDGE_GAP / 2
-          cy = nA.position.y + aH
+          cx = nA.position.x + aW / 2 - BRIDGE_SIZE / 2
+          cy = nA.position.y + aH - BRIDGE_OVERLAP
         } else {
-          cx = nA.position.x + aW / 2 - BRIDGE_GAP / 2
-          cy = nA.position.y - BRIDGE_GAP
+          cx = nA.position.x + aW / 2 - BRIDGE_SIZE / 2
+          cy = nA.position.y - BRIDGE_SIZE + BRIDGE_OVERLAP
         }
 
         return {
           id: b.id,
           type: 'bridgeNode',
           position: { x: cx, y: cy },
-          data: {},
+          data: { bridgeId: b.id },
           draggable: false,
           selectable: false,
           focusable: false,
           deletable: false,
           connectable: false,
-          zIndex: 5,
+          zIndex: 10,
         }
       }).filter(Boolean)
 
@@ -370,6 +431,7 @@ function Flow() {
     setContextMenu(null)
     setHandleMenu(null)
     setPaneMenu(null)
+    setBridgeMenu(null)
   }, [])
 
   const onPaneContextMenu = useCallback((event) => {
@@ -405,6 +467,11 @@ function Flow() {
 
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault()
+    // Bridge node → show remove bridge option
+    if (node.id.startsWith('bridge-')) {
+      setBridgeMenu({ x: event.clientX, y: event.clientY, bridgeId: node.id })
+      return
+    }
     // Canvas frame → show pane context menu instead
     if (isSpecialNode(node)) {
       setPaneMenu({ x: event.clientX, y: event.clientY, flowPos: reactFlowInstance?.screenToFlowPosition({ x: event.clientX, y: event.clientY }) })
@@ -589,6 +656,8 @@ function Flow() {
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
+            onNodeDragStart={onNodeDragStart}
+            onNodeDrag={onNodeDrag}
             onNodeDragStop={onNodeDragStop}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
@@ -652,6 +721,24 @@ function Flow() {
             onRemove={() => onRemoveHandle(handleMenu.nodeId, handleMenu.handleId)}
             onClose={() => setHandleMenu(null)}
           />
+        )}
+        {bridgeMenu && (
+          <div style={{
+            position: 'fixed', left: bridgeMenu.x, top: bridgeMenu.y, zIndex: 100,
+            background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 160, padding: '6px 0',
+            fontFamily: 'SwissNow, Inter, sans-serif',
+          }}>
+            <div
+              onClick={() => { removeBridge(bridgeMenu.bridgeId); setBridgeMenu(null) }}
+              style={{ padding: '7px 16px', cursor: 'pointer', fontSize: 13, color: '#ff4444', display: 'flex', alignItems: 'center', gap: 8 }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Remove Bridge
+            </div>
+          </div>
         )}
       </div>
     </ConnectorContext.Provider>
