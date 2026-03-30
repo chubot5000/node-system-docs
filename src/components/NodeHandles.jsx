@@ -1,21 +1,22 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { Handle, Position } from '@xyflow/react'
 
 const positionMap = { top: Position.Top, bottom: Position.Bottom, left: Position.Left, right: Position.Right }
 const allEdges = ['top', 'bottom', 'left', 'right']
+
+// Invisible hover zones on each edge to detect which side the cursor is near
+const hoverZones = {
+  top: { top: -20, left: '10%', right: '10%', height: 40, position: 'absolute' },
+  bottom: { bottom: -20, left: '10%', right: '10%', height: 40, position: 'absolute' },
+  left: { left: -20, top: '10%', bottom: '10%', width: 40, position: 'absolute' },
+  right: { right: -20, top: '10%', bottom: '10%', width: 40, position: 'absolute' },
+}
 
 const ghostPositions = {
   top: { top: 0, left: '50%', transform: 'translate(-50%, -50%)' },
   bottom: { bottom: 0, left: '50%', transform: 'translate(-50%, 50%)' },
   left: { left: 0, top: '50%', transform: 'translate(-50%, -50%)' },
   right: { right: 0, top: '50%', transform: 'translate(50%, -50%)' },
-}
-
-const removeButtonOffsets = {
-  top: { top: -30, left: '50%', transform: 'translateX(-50%)' },
-  bottom: { bottom: -30, left: '50%', transform: 'translateX(-50%)' },
-  left: { left: -30, top: '50%', transform: 'translateY(-50%)' },
-  right: { right: -30, top: '50%', transform: 'translateY(-50%)' },
 }
 
 function getHandleClass(cType) {
@@ -27,9 +28,11 @@ function getHandleClass(cType) {
 }
 
 export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, onRemoveHandle, onHandleContextMenu }) {
+  const [hoveredEdge, setHoveredEdge] = useState(null)
+
   return (
     <>
-      {/* Each active edge gets TWO overlapping handles: source + target */}
+      {/* Dual source+target handles per active edge */}
       {activeHandles.map((edge) => {
         const cType = handleTypes?.[edge] || 'plain'
         const cls = getHandleClass(cType)
@@ -53,37 +56,28 @@ export function NodeHandles({ activeHandles, handleTypes, hovered, onAddHandle, 
         )
       })}
 
-      {/* Ghost connector previews on hover for edges without handles */}
+      {/* Invisible hover zones for each empty edge — only show ghost for the hovered side */}
       {hovered && allEdges.filter((e) => !activeHandles.includes(e)).map((edge) => (
         <div
-          key={`ghost-${edge}`}
+          key={`zone-${edge}`}
+          style={{ ...hoverZones[edge], zIndex: 5, cursor: 'pointer' }}
+          onMouseEnter={() => setHoveredEdge(edge)}
+          onMouseLeave={() => setHoveredEdge(null)}
           onClick={(e) => { e.stopPropagation(); onAddHandle(edge) }}
-          style={{
-            position: 'absolute', ...ghostPositions[edge],
-            width: 30, height: 30,
-            background: 'white', border: '2px solid #747474',
-            borderRadius: 1.4,
-            opacity: 0.4,
-            cursor: 'pointer', zIndex: 10,
-            transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
-        />
-      ))}
-
-      {/* Remove buttons on hover */}
-      {hovered && activeHandles.map((edge) => (
-        <div
-          key={`rm-${edge}`}
-          onClick={(e) => { e.stopPropagation(); onRemoveHandle(edge) }}
-          style={{
-            position: 'absolute', ...removeButtonOffsets[edge],
-            width: 14, height: 14, background: '#ff4444', border: 'none',
-            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', zIndex: 10, fontSize: 9, lineHeight: 1, color: 'white', fontWeight: 'bold',
-          }}
-        >×</div>
+        >
+          {hoveredEdge === edge && (
+            <div
+              style={{
+                position: 'absolute', ...ghostPositions[edge],
+                width: 30, height: 30,
+                background: 'white', border: '2px solid #747474',
+                borderRadius: 1.4,
+                opacity: 0.5,
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+        </div>
       ))}
     </>
   )

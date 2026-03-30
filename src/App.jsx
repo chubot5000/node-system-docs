@@ -5,6 +5,7 @@ import {
   addEdge,
   useNodesState,
   useEdgesState,
+  useUpdateNodeInternals,
   Controls,
   Background,
   BackgroundVariant,
@@ -62,6 +63,7 @@ function Flow() {
   const [activeConnectorType, setActiveConnectorType] = useState('plain')
   const [contextMenu, setContextMenu] = useState(null)
   const [handleMenu, setHandleMenu] = useState(null) // { x, y, nodeId, edge, currentType }
+  const updateNodeInternals = useUpdateNodeInternals()
 
   const onConnect = useCallback((params) => {
     setEdges((eds) => addEdge({ ...params, style: { stroke: '#747474', strokeWidth: 2 }, labelBgPadding: [16, 10] }, eds))
@@ -138,7 +140,9 @@ function Flow() {
       const ht = { ...n.data.handleTypes, [edge]: activeConnectorType || 'plain' }
       return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
     }))
-  }, [setNodes, activeConnectorType])
+    // Tell React Flow about the new handle
+    setTimeout(() => updateNodeInternals(nodeId), 0)
+  }, [setNodes, activeConnectorType, updateNodeInternals])
 
   // Handle context menu — called from within node components
   const onHandleContextMenu = useCallback((event, nodeId, edge, currentType) => {
@@ -152,7 +156,8 @@ function Flow() {
       const ht = { ...n.data.handleTypes, [edge]: newType }
       return { ...n, data: { ...n.data, handleTypes: ht } }
     }))
-  }, [setNodes])
+    setTimeout(() => updateNodeInternals(nodeId), 0)
+  }, [setNodes, updateNodeInternals])
 
   const onRemoveHandle = useCallback((nodeId, edge) => {
     setNodes((nds) => nds.map((n) => {
@@ -168,7 +173,8 @@ function Flow() {
       if (e.target === nodeId && (e.targetHandle === `${edge}-tgt` || e.targetHandle === edge)) return false
       return true
     }))
-  }, [setNodes, setEdges])
+    setTimeout(() => updateNodeInternals(nodeId), 0)
+  }, [setNodes, setEdges, updateNodeInternals])
 
   const onKeyDown = useCallback((event) => {
     if (event.key === 'Backspace' || event.key === 'Delete') {
