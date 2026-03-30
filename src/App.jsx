@@ -9,6 +9,7 @@ import {
   Background,
   BackgroundVariant,
   ConnectionMode,
+  SelectionMode,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
@@ -253,6 +254,20 @@ function Flow() {
     setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor })
   }, [reactFlowInstance])
 
+  const onDuplicateNode = useCallback((nodeId) => {
+    setNodes((nds) => {
+      const original = nds.find((n) => n.id === nodeId)
+      if (!original || original.id === CANVAS_ID) return nds
+      return nds.concat({
+        ...original,
+        id: getId(),
+        position: { x: original.position.x + 30, y: original.position.y + 30 },
+        selected: false,
+        data: { ...original.data, activeHandles: [...original.data.activeHandles], handleTypes: { ...original.data.handleTypes } },
+      })
+    })
+  }, [setNodes])
+
   const onDeleteNode = useCallback((nodeId) => {
     if (nodeId === CANVAS_ID) return
     setNodes((nds) => nds.filter((n) => n.id !== nodeId))
@@ -339,6 +354,10 @@ function Flow() {
             nodeTypes={nodeTypes}
             defaultEdgeOptions={defaultEdgeOptions}
             connectionMode={ConnectionMode.Loose}
+            selectionOnDrag
+            selectionMode={SelectionMode.Partial}
+            panOnDrag={[1, 2]}
+            panOnScroll
             snapToGrid
             snapGrid={[15, 15]}
             fitView
@@ -367,7 +386,8 @@ function Flow() {
             x={contextMenu.x} y={contextMenu.y} nodeId={contextMenu.nodeId}
             currentFill={contextMenu.fill} currentStroke={contextMenu.stroke}
             onClose={() => setContextMenu(null)}
-            onDelete={onDeleteNode} onFillChange={onFillChange} onStrokeChange={onStrokeChange}
+            onDelete={onDeleteNode} onDuplicate={onDuplicateNode}
+            onFillChange={onFillChange} onStrokeChange={onStrokeChange}
           />
         )}
         {paneMenu && (

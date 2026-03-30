@@ -1,5 +1,5 @@
 import { memo, useState, useCallback } from 'react'
-import { toPng, toSvg } from 'html-to-image'
+import { toPng } from 'html-to-image'
 import { getViewportForBounds, useReactFlow } from '@xyflow/react'
 import { Heading1, Heading2, AlignLeft, Hexagon, Image } from 'lucide-react'
 
@@ -95,17 +95,32 @@ function RightPanel({ canvasW, canvasH, onCanvasChange }) {
         },
       }
 
-      const fn = format === 'svg' ? toSvg : toPng
-      const dataUrl = await fn(viewport, options)
+      const pngDataUrl = await toPng(viewport, options)
 
       if (frame) { frame.style.border = origBorder; frame.style.boxShadow = origShadow }
 
+      let downloadUrl, filename
+      if (format === 'svg') {
+        // Wrap the rasterized PNG in a proper SVG — foreignObject SVGs don't render in most viewers
+        const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${pixelW}" height="${pixelH}" viewBox="0 0 ${pixelW} ${pixelH}">
+  <image width="${pixelW}" height="${pixelH}" href="${pngDataUrl}"/>
+</svg>`
+        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' })
+        downloadUrl = URL.createObjectURL(blob)
+        filename = `canvas-${canvasW}x${canvasH}@${scale}x.svg`
+      } else {
+        downloadUrl = pngDataUrl
+        filename = `canvas-${canvasW}x${canvasH}@${scale}x.png`
+      }
+
       const a = document.createElement('a')
-      a.href = dataUrl
-      a.download = `canvas-${canvasW}x${canvasH}@${scale}x.${format}`
+      a.href = downloadUrl
+      a.download = filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
+      if (format === 'svg') URL.revokeObjectURL(downloadUrl)
     } catch (e) { console.error('Export failed:', e) }
     setExporting(false)
   }
