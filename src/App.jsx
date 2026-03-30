@@ -572,6 +572,14 @@ function Flow() {
     setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id, fill: node.data.fillColor, stroke: node.data.strokeColor, multiCount })
   }, [reactFlowInstance, nodes])
 
+  const onSelectionContextMenu = useCallback((event) => {
+    event.preventDefault()
+    const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
+    if (sel.length === 0) return
+    setHandleMenu(null)
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: sel[0].id, fill: sel[0].data.fillColor, stroke: sel[0].data.strokeColor, multiCount: sel.length })
+  }, [nodes])
+
   /* Get target node IDs: all selected if the clicked node is selected, otherwise just the clicked node */
   const getTargetIds = useCallback((nodeId) => {
     const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
@@ -828,6 +836,7 @@ function Flow() {
             onPaneClick={onPaneClick}
             onPaneContextMenu={onPaneContextMenu}
             onNodeContextMenu={onNodeContextMenu}
+            onSelectionContextMenu={onSelectionContextMenu}
             nodeTypes={nodeTypes}
             defaultEdgeOptions={defaultEdgeOptions}
             connectionMode={ConnectionMode.Loose}
