@@ -29,7 +29,21 @@ import { nextHandleId, countOnSide } from './utils/handleUtils'
 
 export const ConnectorContext = createContext('plain')
 
+function BridgeNode() {
+  return (
+    <div style={{
+      width: 30, height: 30, background: 'white',
+      border: '2px solid #747474', borderRadius: 1.4,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 16, fontWeight: 700, color: '#747474',
+      fontFamily: 'Inter, sans-serif',
+      pointerEvents: 'none',
+    }}>+</div>
+  )
+}
+
 const nodeTypes = {
+  bridgeNode: BridgeNode,
   canvasFrame: CanvasFrame,
   miniTitleNode: MiniTitleNode,
   largeTitleNode: LargeTitleNode,
@@ -40,6 +54,7 @@ const nodeTypes = {
 }
 
 const CANVAS_ID = '__canvas__'
+const isSpecialNode = (n) => n.id === CANVAS_ID || n.id?.startsWith('bridge-')
 const DEFAULT_W = 1920
 const DEFAULT_H = 1080
 
@@ -88,7 +103,7 @@ function Flow() {
   const [canvasW, setCanvasW] = useState(DEFAULT_W)
   const [canvasH, setCanvasH] = useState(DEFAULT_H)
   const [canvasBg, setCanvasBg] = useState('#FFFFFF')
-  const selectedNodes = nodes.filter(n => n.selected && n.id !== CANVAS_ID)
+  const selectedNodes = nodes.filter(n => n.selected && !isSpecialNode(n))
 
   // Sync canvas bg color to canvas frame node
   useEffect(() => {
@@ -199,12 +214,13 @@ function Flow() {
     }))
   }, [reactFlowInstance, setNodes])
 
-  /* ── Snap & Bridge: auto-connect with additive (+) when dragged near another node ── */
-  const SNAP_THRESHOLD = 50  // px proximity to trigger snap
-  const BRIDGE_GAP = 30      // px gap between nodes (= connector size)
+  /* ── Snap & Bridge: single additive connector bridging two nodes (no edges) ── */
+  const SNAP_THRESHOLD = 50
+  const BRIDGE_GAP = 30  // connector size
+  const [bridges, setBridges] = useState([])  // { id, nodeA, nodeB, side }
 
   const onNodeDragStop = useCallback((event, draggedNode) => {
-    if (draggedNode.id === CANVAS_ID || !reactFlowInstance) return
+    if (draggedNode.id === CANVAS_ID || draggedNode.id.startsWith('bridge-') || !reactFlowInstance) return
 
     const dNode = reactFlowInstance.getNode(draggedNode.id)
     if (!dNode) return
@@ -213,35 +229,28 @@ function Flow() {
     const dX = dNode.position.x
     const dY = dNode.position.y
 
-    // Check all other nodes for proximity
     const allNodes = reactFlowInstance.getNodes()
     for (const other of allNodes) {
-      if (other.id === CANVAS_ID || other.id === dNode.id) continue
+      if (other.id === CANVAS_ID || other.id.startsWith('bridge-') || other.id === dNode.id) continue
 
       const oW = other.measured?.width ?? 250
       const oH = other.measured?.height ?? 83
       const oX = other.position.x
       const oY = other.position.y
 
-      // Check vertical overlap (nodes roughly aligned horizontally)
       const vOverlap = Math.min(dY + dH, oY + oH) - Math.max(dY, oY)
-      // Check horizontal overlap (nodes roughly aligned vertically)
       const hOverlap = Math.min(dX + dW, oX + oW) - Math.max(dX, oX)
 
-      let snapSide = null  // side of dragged node that faces the other
+      let snapSide = null
       let newX = dX, newY = dY
 
       if (vOverlap > Math.min(dH, oH) * 0.3) {
-        // Horizontal neighbors
-        const gapRight = oX - (dX + dW)   // dragged is LEFT of other
-        const gapLeft = dX - (oX + oW)    // dragged is RIGHT of other
-
+        const gapRight = oX - (dX + dW)
+        const gapLeft = dX - (oX + oW)
         if (gapRight >= -10 && gapRight <= SNAP_THRESHOLD) {
-          // Snap dragged node's right edge to other's left edge with gap
           newX = oX - dW - BRIDGE_GAP
-          // Align vertical centers
           newY = oY + oH / 2 - dH / 2
-          snapSide = 'right'  // dragged's right → other's left
+          snapSide = 'right'
         } else if (gapLeft >= -10 && gapLeft <= SNAP_THRESHOLD) {
           newX = oX + oW + BRIDGE_GAP
           newY = oY + oH / 2 - dH / 2
@@ -250,10 +259,8 @@ function Flow() {
       }
 
       if (!snapSide && hOverlap > Math.min(dW, oW) * 0.3) {
-        // Vertical neighbors
         const gapBelow = oY - (dY + dH)
         const gapAbove = dY - (oY + oH)
-
         if (gapBelow >= -10 && gapBelow <= SNAP_THRESHOLD) {
           newY = oY - dH - BRIDGE_GAP
           newX = oX + oW / 2 - dW / 2
@@ -267,78 +274,82 @@ function Flow() {
 
       if (!snapSide) continue
 
-      const otherSide = { right: 'left', left: 'right', bottom: 'top', top: 'bottom' }[snapSide]
-      const maxD = dNode.type === 'titleNode' ? 1 : 3
-      const maxO = other.type === 'titleNode' ? 1 : 3
-
-      // Check if there's already an edge between these two on these sides
-      const existingEdge = edges.find((e) =>
-        (e.source === dNode.id && e.target === other.id) ||
-        (e.source === other.id && e.target === dNode.id)
+      // Check if bridge already exists between these two
+      const existing = bridges.find((b) =>
+        (b.nodeA === dNode.id && b.nodeB === other.id) ||
+        (b.nodeA === other.id && b.nodeB === dNode.id)
       )
-      if (existingEdge) {
-        // Still snap position even if already connected
+      if (existing) {
         setNodes((nds) => nds.map((n) => n.id === dNode.id ? { ...n, position: { x: newX, y: newY } } : n))
         break
       }
 
-      // Ensure handles exist on both nodes
-      setNodes((nds) => nds.map((n) => {
-        if (n.id === dNode.id) {
-          const ah = [...(n.data.activeHandles || [])]
-          const ht = { ...(n.data.handleTypes || {}) }
-          const sideCount = countOnSide(snapSide, ah)
-          if (sideCount >= maxD) return { ...n, position: { x: newX, y: newY } }
-          const hId = nextHandleId(snapSide, ah)
-          if (!hId) return { ...n, position: { x: newX, y: newY } }
-          ah.push(hId)
-          ht[hId] = 'additive'
-          return { ...n, position: { x: newX, y: newY }, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
-        }
-        if (n.id === other.id) {
-          const ah = [...(n.data.activeHandles || [])]
-          const ht = { ...(n.data.handleTypes || {}) }
-          const sideCount = countOnSide(otherSide, ah)
-          if (sideCount >= maxO) return n
-          const hId = nextHandleId(otherSide, ah)
-          if (!hId) return n
-          ah.push(hId)
-          ht[hId] = 'additive'
-          return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
-        }
-        return n
-      }))
+      // Snap position and create bridge
+      setNodes((nds) => nds.map((n) => n.id === dNode.id ? { ...n, position: { x: newX, y: newY } } : n))
+      setBridges((prev) => [...prev, {
+        id: `bridge-${dNode.id}-${other.id}`,
+        nodeA: dNode.id,
+        nodeB: other.id,
+        side: snapSide,  // side of nodeA facing nodeB
+      }])
 
-      // Create edge between the new handles after state update
-      setTimeout(() => {
-        const updatedDragged = reactFlowInstance.getNode(dNode.id)
-        const updatedOther = reactFlowInstance.getNode(other.id)
-        if (!updatedDragged || !updatedOther) return
-
-        updateNodeInternals(dNode.id)
-        updateNodeInternals(other.id)
-
-        // Find the last additive handle on each side
-        const dHandles = updatedDragged.data.activeHandles || []
-        const oHandles = updatedOther.data.activeHandles || []
-        const srcHandle = [...dHandles].reverse().find((h) => h.startsWith(snapSide + '-'))
-        const tgtHandle = [...oHandles].reverse().find((h) => h.startsWith(otherSide + '-'))
-
-        if (srcHandle && tgtHandle) {
-          setEdges((eds) => addEdge({
-            source: dNode.id,
-            sourceHandle: srcHandle,
-            target: other.id,
-            targetHandle: `${tgtHandle}-tgt`,
-            style: { stroke: '#747474', strokeWidth: 2 },
-            labelBgPadding: [16, 10],
-          }, eds))
-        }
-      }, 50)
-
-      break  // only snap to one neighbor
+      break
     }
-  }, [reactFlowInstance, edges, setNodes, setEdges, updateNodeInternals])
+  }, [reactFlowInstance, bridges, setNodes])
+
+  // Remove bridges when either node is deleted
+  useEffect(() => {
+    const nodeIds = new Set(nodes.filter(n => !n.id.startsWith('bridge-')).map((n) => n.id))
+    setBridges((prev) => prev.filter((b) => nodeIds.has(b.nodeA) && nodeIds.has(b.nodeB)))
+  }, [nodes])
+
+  // Sync bridge nodes into the nodes array based on current positions
+  useEffect(() => {
+    if (!reactFlowInstance) return
+    setNodes((nds) => {
+      // Remove old bridge nodes
+      const filtered = nds.filter((n) => !n.id.startsWith('bridge-'))
+      // Add bridge nodes at computed positions
+      const bridgeNodes = bridges.map((b) => {
+        const nA = nds.find((n) => n.id === b.nodeA)
+        const nB = nds.find((n) => n.id === b.nodeB)
+        if (!nA || !nB) return null
+
+        const aW = nA.measured?.width ?? 250
+        const aH = nA.measured?.height ?? 83
+
+        let cx, cy
+        if (b.side === 'right') {
+          cx = nA.position.x + aW
+          cy = nA.position.y + aH / 2 - BRIDGE_GAP / 2
+        } else if (b.side === 'left') {
+          cx = nA.position.x - BRIDGE_GAP
+          cy = nA.position.y + aH / 2 - BRIDGE_GAP / 2
+        } else if (b.side === 'bottom') {
+          cx = nA.position.x + aW / 2 - BRIDGE_GAP / 2
+          cy = nA.position.y + aH
+        } else {
+          cx = nA.position.x + aW / 2 - BRIDGE_GAP / 2
+          cy = nA.position.y - BRIDGE_GAP
+        }
+
+        return {
+          id: b.id,
+          type: 'bridgeNode',
+          position: { x: cx, y: cy },
+          data: {},
+          draggable: false,
+          selectable: false,
+          focusable: false,
+          deletable: false,
+          connectable: false,
+          zIndex: 5,
+        }
+      }).filter(Boolean)
+
+      return [...filtered, ...bridgeNodes]
+    })
+  }, [bridges, reactFlowInstance, setNodes])
 
   const onEdgeClick = useCallback((event, edge) => {
     event.stopPropagation()
@@ -395,7 +406,7 @@ function Flow() {
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault()
     // Canvas frame → show pane context menu instead
-    if (node.id === CANVAS_ID) {
+    if (isSpecialNode(node)) {
       setPaneMenu({ x: event.clientX, y: event.clientY, flowPos: reactFlowInstance?.screenToFlowPosition({ x: event.clientX, y: event.clientY }) })
       return
     }
@@ -416,7 +427,7 @@ function Flow() {
   const onDuplicateNode = useCallback((nodeId) => {
     setNodes((nds) => {
       const original = nds.find((n) => n.id === nodeId)
-      if (!original || original.id === CANVAS_ID) return nds
+      if (!original || isSpecialNode(original)) return nds
       return nds.concat({
         ...original,
         id: getId(),
@@ -430,7 +441,7 @@ function Flow() {
   /* Duplicate selected nodes with offset */
   const duplicateSelected = useCallback(() => {
     setNodes((nds) => {
-      const sel = nds.filter((n) => n.selected && n.id !== CANVAS_ID)
+      const sel = nds.filter((n) => n.selected && !isSpecialNode(n))
       if (!sel.length) return nds
       const clones = sel.map((n) => ({
         ...n,
@@ -440,12 +451,12 @@ function Flow() {
         data: { ...n.data, activeHandles: [...(n.data.activeHandles || [])], handleTypes: { ...(n.data.handleTypes || {}) } },
       }))
       // Deselect originals
-      return nds.map((n) => n.selected && n.id !== CANVAS_ID ? { ...n, selected: false } : n).concat(clones)
+      return nds.map((n) => n.selected && !isSpecialNode(n) ? { ...n, selected: false } : n).concat(clones)
     })
   }, [setNodes])
 
   const onDeleteNode = useCallback((nodeId) => {
-    if (nodeId === CANVAS_ID) return
+    if (isSpecialNode({id: nodeId})) return
     setNodes((nds) => nds.filter((n) => n.id !== nodeId))
     setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId))
   }, [setNodes, setEdges])
@@ -509,7 +520,7 @@ function Flow() {
 
     // Delete / Backspace
     if (event.key === 'Backspace' || event.key === 'Delete') {
-      setNodes((nds) => nds.filter((n) => !n.selected || n.id === CANVAS_ID))
+      setNodes((nds) => nds.filter((n) => !n.selected || isSpecialNode(n)))
       setEdges((eds) => eds.filter((e) => !e.selected))
       return
     }
@@ -524,7 +535,7 @@ function Flow() {
     // Cmd+C — Copy
     if (mod && !event.shiftKey && event.key === 'c') {
       event.preventDefault()
-      const sel = nodes.filter((n) => n.selected && n.id !== CANVAS_ID)
+      const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
       if (sel.length) clipboardRef.current = sel.map((n) => JSON.parse(JSON.stringify(n)))
       return
     }
@@ -532,7 +543,7 @@ function Flow() {
     // Cmd+X — Cut
     if (mod && event.key === 'x') {
       event.preventDefault()
-      const sel = nodes.filter((n) => n.selected && n.id !== CANVAS_ID)
+      const sel = nodes.filter((n) => n.selected && !isSpecialNode(n))
       if (sel.length) {
         clipboardRef.current = sel.map((n) => JSON.parse(JSON.stringify(n)))
         const selIds = new Set(sel.map((n) => n.id))
@@ -598,6 +609,7 @@ function Flow() {
             style={{ background: '#F5F3F0' }}
           >
             <Background variant={BackgroundVariant.Dots} gap={15} size={1} color="#D5D0CC" />
+            {/* Bridge connectors rendered in flow-coordinate space */}
           </ReactFlow>
         </div>
         <RightPanel canvasW={canvasW} canvasH={canvasH} onCanvasChange={onCanvasChange}

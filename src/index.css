@@ -93,25 +93,28 @@ body {
 }
 
 /* Canvas frame node — no selection ring, no padding */
-.react-flow__node[data-id="__canvas__"] {
+.react-flow__node[data-id="__canvas__"],
+.react-flow__node[data-id^="bridge-"] {
   padding: 0 !important;
   border: none !important;
   box-shadow: none !important;
   pointer-events: none !important;
 }
 .react-flow__node[data-id="__canvas__"].selected,
-.react-flow__node[data-id="__canvas__"]:focus {
+.react-flow__node[data-id="__canvas__"]:focus,
+.react-flow__node[data-id^="bridge-"].selected,
+.react-flow__node[data-id^="bridge-"]:focus {
   outline: none !important;
   box-shadow: none !important;
 }
 
 /* Selected node indicator — subtle blue outline */
-.react-flow__node.selected:not([data-id="__canvas__"]) {
+.react-flow__node.selected:not([data-id="__canvas__"]):not([data-id^="bridge-"]) {
   outline: 1.5px solid rgba(101, 83, 67, 0.35) !important;
   outline-offset: 4px !important;
   border-radius: 4px;
 }
-.react-flow__node:focus:not([data-id="__canvas__"]) {
+.react-flow__node:focus:not([data-id="__canvas__"]):not([data-id^="bridge-"]) {
   outline: 1.5px solid rgba(101, 83, 67, 0.35) !important;
   outline-offset: 4px !important;
 }
