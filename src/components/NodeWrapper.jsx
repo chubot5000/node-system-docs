@@ -61,7 +61,7 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
           : { top: `${pct}%`, marginTop: -15, left: 0 }
 
         return (
-          <div key={side} style={{ position: 'absolute', ...zones[side], zIndex: 5, cursor: 'pointer' }}
+          <div key={side} style={{ position: 'absolute', ...zones[side], zIndex: 1, cursor: 'pointer' }}
             onMouseEnter={() => setHoveredSide(side)} onMouseLeave={() => setHoveredSide(null)}
             onClick={(e) => { e.stopPropagation(); addHandle(side) }}>
             {hoveredSide === side && (

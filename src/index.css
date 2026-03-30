@@ -22,13 +22,14 @@ body {
   stroke-width: 2px !important;
 }
 
-/* Connector squares */
+/* Connector squares — z-index 10 so they sit above ghost add-zones (z-1) */
 .react-flow__handle {
   width: 30px !important;
   height: 30px !important;
   background: white !important;
   border: 2px solid #747474 !important;
   border-radius: 1.4px !important;
+  z-index: 10 !important;
 }
 
 /* Black filled */
@@ -61,10 +62,11 @@ body {
   background: white url("data:image/svg+xml,%3Csvg width='11' height='13' viewBox='1 -1 11 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(90,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/11px 13px no-repeat !important;
 }
 
-/* Transparent target overlay */
+/* Transparent target overlay — same z as source handles */
 .react-flow__handle.handle-overlay {
   opacity: 0 !important;
   pointer-events: all !important;
+  z-index: 10 !important;
 }
 
 .react-flow__minimap { display: none; }
