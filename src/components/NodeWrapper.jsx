@@ -17,7 +17,20 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
   const handles = data.activeHandles || ['bottom-0']
   const hTypes = data.handleTypes || {}
 
+  // Compute which sides are bridged (blocked from new connectors)
+  const bridgedSides = new Set()
+  if (ctx.bridges) {
+    for (const b of ctx.bridges) {
+      if (b.nodeA === id) bridgedSides.add(b.side)
+      if (b.nodeB === id) {
+        const opposite = { right: 'left', left: 'right', bottom: 'top', top: 'bottom' }
+        bridgedSides.add(opposite[b.side])
+      }
+    }
+  }
+
   const addHandle = (side) => {
+    if (bridgedSides.has(side)) return  // blocked
     const newId = nextHandleId(side, handles)
     if (newId) {
       ctx.onAddHandle?.(id, newId)
@@ -33,6 +46,7 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
    */
   const onGhostPointerDown = useCallback((e, side) => {
     if (e.button !== 0) return
+    if (bridgedSides.has(side)) return
     e.stopPropagation()
     e.preventDefault()
 
@@ -108,6 +122,7 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
       })}
 
       {hovered && allSides.map((side) => {
+        if (bridgedSides.has(side)) return null  // no connectors on bridged sides
         const count = countOnSide(side, handles)
         if (count >= maxPerSide) return null
         const isH = side === 'top' || side === 'bottom'

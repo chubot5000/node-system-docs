@@ -647,7 +647,7 @@ function Flow() {
   }, [setNodes, setEdges, nodes, duplicateSelected])
 
   return (
-    <ConnectorContext.Provider value={{ activeConnectorType, onHandleContextMenu, onAddHandle, onRemoveHandle }}>
+    <ConnectorContext.Provider value={{ activeConnectorType, onHandleContextMenu, onAddHandle, onRemoveHandle, bridges }}>
       <div className="flex h-screen w-screen" onKeyDown={onKeyDown} tabIndex={0}>
         <div className="flex-1 h-full" ref={reactFlowWrapper}>
           <ReactFlow
@@ -727,22 +727,25 @@ function Flow() {
           />
         )}
         {bridgeMenu && (
-          <div style={{
-            position: 'fixed', left: bridgeMenu.x, top: bridgeMenu.y, zIndex: 100,
-            background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 160, padding: '6px 0',
-            fontFamily: 'SwissNow, Inter, sans-serif',
-          }}>
-            <div
-              onClick={() => { removeBridge(bridgeMenu.bridgeId); setBridgeMenu(null) }}
-              style={{ padding: '7px 16px', cursor: 'pointer', fontSize: 13, color: '#ff4444', display: 'flex', alignItems: 'center', gap: 8 }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              Remove Bridge
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setBridgeMenu(null)} onContextMenu={(e) => { e.preventDefault(); setBridgeMenu(null) }} />
+            <div style={{
+              position: 'fixed', left: bridgeMenu.x, top: bridgeMenu.y, zIndex: 100,
+              background: 'white', borderRadius: 8, border: '1px solid #E0DCDA',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 160, padding: '6px 0',
+              fontFamily: 'SwissNow, Inter, sans-serif',
+            }}>
+              <div
+                onClick={() => { removeBridge(bridgeMenu.bridgeId); setBridgeMenu(null) }}
+                style={{ padding: '7px 16px', cursor: 'pointer', fontSize: 13, color: '#ff4444', display: 'flex', alignItems: 'center', gap: 8 }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                Remove Bridge
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </ConnectorContext.Provider>
