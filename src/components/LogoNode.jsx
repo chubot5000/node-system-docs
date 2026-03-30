@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useRef, useCallback } from 'react'
+import { useReactFlow } from '@xyflow/react'
 import NodeWrapper from './NodeWrapper'
 
 const defaultLogo = (
@@ -15,15 +16,19 @@ const defaultLogo = (
 )
 
 function LogoNode({ data, id }) {
-  const [logoSrc, setLogoSrc] = useState(null)
+  const { setNodes } = useReactFlow()
   const fileRef = useRef()
+  const onUpload = useCallback((e) => {
+    const f = e.target.files?.[0]
+    if (f) { const r = new FileReader(); r.onload = (ev) => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, imageSrc: ev.target.result } } : n)); r.readAsDataURL(f) }
+  }, [id, setNodes])
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={3}
       onClick={() => fileRef.current?.click()}
       style={{ width: 250, height: 250, background: data.fillColor || '#655343', borderRadius: 4.35, border: `2px solid ${data.strokeColor || '#655343'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-      <input ref={fileRef} type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => setLogoSrc(ev.target.result); r.readAsDataURL(f) } }} style={{ display: 'none' }} />
-      {logoSrc ? <img src={logoSrc} alt="" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} /> : defaultLogo}
+      <input ref={fileRef} type="file" accept="image/*" onChange={onUpload} style={{ display: 'none' }} />
+      {data.imageSrc ? <img src={data.imageSrc} alt="" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} /> : defaultLogo}
     </NodeWrapper>
   )
 }

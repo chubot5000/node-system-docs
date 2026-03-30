@@ -3,13 +3,21 @@ import { useState } from 'react'
 /* Reusable inline-editable text with placeholder + cursor icon when empty */
 export default function EditableText({ value, onChange, style = {}, placeholder = 'Double-click to edit', inputStyle = {}, multiline = false }) {
   const [editing, setEditing] = useState(false)
+  const [localVal, setLocalVal] = useState(value)
+
+  // Sync if parent value changes (e.g. undo/redo)
+  if (!editing && value !== localVal) setLocalVal(value)
 
   const baseStyle = { cursor: 'text', minHeight: '1.2em', position: 'relative', ...style }
-  const isEmpty = !value || !value.trim()
+  const isEmpty = !localVal || !localVal.trim()
 
   if (editing) {
-    const shared = { autoFocus: true, defaultValue: value, style: { ...style, background: 'transparent', outline: 'none', border: 'none', resize: 'none', ...inputStyle } }
-    const onDone = (e) => { setEditing(false); onChange(e.target.value) }
+    const shared = { autoFocus: true, defaultValue: localVal, style: { ...style, background: 'transparent', outline: 'none', border: 'none', resize: 'none', ...inputStyle } }
+    const onDone = (e) => {
+      setEditing(false)
+      setLocalVal(e.target.value)
+      onChange(e.target.value)
+    }
     return multiline
       ? <textarea {...shared} onBlur={onDone} />
       : <input {...shared} onBlur={onDone} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} />
@@ -24,7 +32,7 @@ export default function EditableText({ value, onChange, style = {}, placeholder 
           </svg>
           {placeholder}
         </span>
-      ) : value}
+      ) : localVal}
     </div>
   )
 }
