@@ -49,7 +49,7 @@ function TitleNode({ data, id }) {
 
 function GhostZones({ handles, hoveredSide, setHoveredSide, onAdd }) {
   const zones = { top: { top: -15, left: '20%', right: '20%', height: 30 }, bottom: { bottom: -15, left: '20%', right: '20%', height: 30 }, left: { left: -15, top: '20%', bottom: '20%', width: 30 }, right: { right: -15, top: '20%', bottom: '20%', width: 30 } }
-  const ghosts = { top: { top: -15, left: '50%', marginLeft: -15 }, bottom: { bottom: -15, left: '50%', marginLeft: -15 }, left: { left: -15, top: '50%', marginTop: -15 }, right: { right: -15, top: '50%', marginTop: -15 } }
+  const ghosts = { top: { top: 0, left: '50%', marginLeft: -15 }, bottom: { top: 0, left: '50%', marginLeft: -15 }, left: { left: 0, top: '50%', marginTop: -15 }, right: { left: 0, top: '50%', marginTop: -15 } }
 
   return allSides.filter((s) => !handles.includes(s)).map((side) => (
     <div key={side} style={{ position: 'absolute', ...zones[side], zIndex: 5, cursor: 'pointer' }}

@@ -65,9 +65,86 @@ function Flow() {
   const [handleMenu, setHandleMenu] = useState(null) // { x, y, nodeId, edge, currentType }
   const updateNodeInternals = useUpdateNodeInternals()
 
+  const connectingFrom = useRef(null)
+
+  const onConnectStart = useCallback((event, params) => {
+    connectingFrom.current = params
+  }, [])
+
   const onConnect = useCallback((params) => {
+    connectingFrom.current = null
     setEdges((eds) => addEdge({ ...params, style: { stroke: '#747474', strokeWidth: 2 }, labelBgPadding: [16, 10] }, eds))
   }, [setEdges])
+
+  // When a connection drag ends without connecting, check if we're over a node and auto-create a handle + edge
+  const onConnectEnd = useCallback((event) => {
+    if (!connectingFrom.current || !reactFlowInstance) return
+    const from = connectingFrom.current
+    connectingFrom.current = null
+
+    // Get the target element under the cursor
+    const targetEl = document.elementFromPoint(event.clientX, event.clientY)
+    const nodeEl = targetEl?.closest('.react-flow__node')
+    if (!nodeEl) return
+    const targetNodeId = nodeEl.getAttribute('data-id')
+    if (!targetNodeId || targetNodeId === from.nodeId) return
+
+    // Find target node
+    const targetNode = nodes.find((n) => n.id === targetNodeId)
+    if (!targetNode) return
+
+    // Determine which side of the target node is closest to the cursor
+    const flowPos = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY })
+    const nodeRect = {
+      x: targetNode.position.x,
+      y: targetNode.position.y,
+      w: nodeEl.offsetWidth / (reactFlowInstance.getZoom()),
+      h: nodeEl.offsetHeight / (reactFlowInstance.getZoom()),
+    }
+    const cx = nodeRect.x + nodeRect.w / 2
+    const cy = nodeRect.y + nodeRect.h / 2
+    const dx = flowPos.x - cx
+    const dy = flowPos.y - cy
+
+    // Determine closest side based on which edge of the rectangle we're nearest
+    let side
+    const ratioX = Math.abs(dx) / (nodeRect.w / 2)
+    const ratioY = Math.abs(dy) / (nodeRect.h / 2)
+    if (ratioX > ratioY) {
+      side = dx > 0 ? 'right' : 'left'
+    } else {
+      side = dy > 0 ? 'bottom' : 'top'
+    }
+
+    const activeHandles = targetNode.data.activeHandles || []
+    // If this side already has a handle, just connect to it
+    const handleExists = activeHandles.includes(side)
+
+    if (!handleExists) {
+      // Create the handle on the target node
+      setNodes((nds) => nds.map((n) => {
+        if (n.id !== targetNodeId) return n
+        const ah = [...(n.data.activeHandles || []), side]
+        const ht = { ...(n.data.handleTypes || {}), [side]: activeConnectorType || 'plain' }
+        return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
+      }))
+      setTimeout(() => updateNodeInternals(targetNodeId), 0)
+    }
+
+    // Create the edge after a tick so React Flow registers the new handle
+    setTimeout(() => {
+      const sourceHandle = from.handleId
+      const targetHandle = side
+      setEdges((eds) => addEdge({
+        source: from.nodeId,
+        sourceHandle,
+        target: targetNodeId,
+        targetHandle,
+        style: { stroke: '#747474', strokeWidth: 2 },
+        labelBgPadding: [16, 10],
+      }, eds))
+    }, 50)
+  }, [reactFlowInstance, nodes, setNodes, setEdges, activeConnectorType, updateNodeInternals])
 
   const onDragOver = useCallback((event) => {
     event.preventDefault()
@@ -196,6 +273,8 @@ function Flow() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onConnectStart={onConnectStart}
+            onConnectEnd={onConnectEnd}
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
