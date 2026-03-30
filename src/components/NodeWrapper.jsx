@@ -1,4 +1,5 @@
-import { useContext, useState, useCallback, useRef } from 'react'
+import { useContext, useState, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import { Handle, Position, useUpdateNodeInternals, useStoreApi } from '@xyflow/react'
 import { XYHandle } from '@xyflow/system'
 import { ConnectorContext } from '../App'
@@ -25,61 +26,61 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
   }
 
   /*
-   * Ghost zone pointerdown: create the handle, then call XYHandle.onPointerDown
-   * directly — the same internal API that React Flow's <Handle> uses.
-   * This starts the connection drag natively in one motion.
+   * Ghost zone pointerdown → one-motion drag-to-connect.
+   * Uses flushSync to render the handle synchronously, then calls
+   * XYHandle.onPointerDown (React Flow's internal API) immediately
+   * while the pointer is still in the "down" state.
    */
   const onGhostPointerDown = useCallback((e, side) => {
-    if (e.button !== 0) return  // left click only
+    if (e.button !== 0) return
     e.stopPropagation()
     e.preventDefault()
 
     const newId = nextHandleId(side, handles)
     if (!newId) return
 
-    // Save the native event — we need it for XYHandle.onPointerDown
     const nativeEvent = e.nativeEvent
 
-    // Create the real handle
-    ctx.onAddHandle?.(id, newId)
+    // Synchronously render the new handle so it exists in DOM immediately
+    flushSync(() => {
+      ctx.onAddHandle?.(id, newId)
+    })
 
-    // After React renders the new handle + React Flow registers it
-    requestAnimationFrame(() => {
-      updateNodeInternals(id)
-      requestAnimationFrame(() => {
-        // Find the DOM element of the newly created handle
-        const nodeEl = document.querySelector(`.react-flow__node[data-id="${id}"]`)
-        if (!nodeEl) return
-        const handleEl = nodeEl.querySelector(`.react-flow__handle[data-handleid="${newId}"]`)
-        if (!handleEl) return
+    // Update React Flow's internal handle position store synchronously
+    updateNodeInternals(id)
 
-        // Call React Flow's internal connection-start API directly
-        const s = store.getState()
-        XYHandle.onPointerDown(nativeEvent, {
-          handleDomNode: handleEl,
-          autoPanOnConnect: s.autoPanOnConnect,
-          connectionMode: s.connectionMode,
-          connectionRadius: s.connectionRadius,
-          domNode: s.domNode,
-          nodeLookup: s.nodeLookup,
-          lib: s.lib,
-          isTarget: false,
-          handleId: newId,
-          nodeId: id,
-          flowId: s.rfId,
-          panBy: s.panBy,
-          cancelConnection: s.cancelConnection,
-          onConnectStart: s.onConnectStart,
-          onConnectEnd: (...args) => store.getState().onConnectEnd?.(...args),
-          updateConnection: s.updateConnection,
-          onConnect: (...args) => store.getState().onConnect?.(...args),
-          isValidConnection: (...args) => store.getState().isValidConnection?.(...args) ?? true,
-          getTransform: () => store.getState().transform,
-          getFromHandle: () => store.getState().connection.fromHandle,
-          autoPanSpeed: s.autoPanSpeed,
-          dragThreshold: s.connectionDragThreshold,
-        })
-      })
+    // Find the newly rendered handle DOM element
+    const nodeEl = document.querySelector(`.react-flow__node[data-id="${id}"]`)
+    if (!nodeEl) return
+    const handleEl = nodeEl.querySelector(`.react-flow__handle[data-handleid="${newId}"]`)
+    if (!handleEl) return
+
+    // Call React Flow's internal connection-start API directly —
+    // same call that <Handle>'s onMouseDown makes
+    const s = store.getState()
+    XYHandle.onPointerDown(nativeEvent, {
+      handleDomNode: handleEl,
+      autoPanOnConnect: s.autoPanOnConnect,
+      connectionMode: s.connectionMode,
+      connectionRadius: s.connectionRadius,
+      domNode: s.domNode,
+      nodeLookup: s.nodeLookup,
+      lib: s.lib,
+      isTarget: false,
+      handleId: newId,
+      nodeId: id,
+      flowId: s.rfId,
+      panBy: s.panBy,
+      cancelConnection: s.cancelConnection,
+      onConnectStart: s.onConnectStart,
+      onConnectEnd: (...args) => store.getState().onConnectEnd?.(...args),
+      updateConnection: s.updateConnection,
+      onConnect: (...args) => store.getState().onConnect?.(...args),
+      isValidConnection: (...args) => store.getState().isValidConnection?.(...args) ?? true,
+      getTransform: () => store.getState().transform,
+      getFromHandle: () => store.getState().connection.fromHandle,
+      autoPanSpeed: s.autoPanSpeed,
+      dragThreshold: s.connectionDragThreshold,
     })
   }, [id, handles, ctx, updateNodeInternals, store])
 
