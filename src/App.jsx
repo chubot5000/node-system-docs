@@ -275,9 +275,9 @@ function Flow() {
   const BRIDGE_SIZE = 30
   const BRIDGE_OVERLAP = 10  // connector overlaps 10px into each node
   const BRIDGE_GAP = BRIDGE_SIZE - BRIDGE_OVERLAP * 2  // actual gap = 10px
-  const [bridges, setBridgesRaw] = useState([])  // { id, nodeA, nodeB, side }
+  const [bridges, setBridgesState] = useState([])  // { id, nodeA, nodeB, side }
   const setBridges = useCallback((val) => {
-    setBridgesRaw((prev) => {
+    setBridgesState((prev) => {
       const next = typeof val === 'function' ? val(prev) : val
       bridgesRef.current = next
       return next
@@ -425,10 +425,13 @@ function Flow() {
     setBridges((prev) => prev.filter((b) => b.id !== bridgeId))
   }, [])
 
-  // Remove bridges when either node is deleted
+  // Remove bridges when either node is deleted (only if something actually changed)
   useEffect(() => {
     const nodeIds = new Set(nodes.filter(n => !n.id.startsWith('bridge-')).map((n) => n.id))
-    setBridges((prev) => prev.filter((b) => nodeIds.has(b.nodeA) && nodeIds.has(b.nodeB)))
+    setBridges((prev) => {
+      const next = prev.filter((b) => nodeIds.has(b.nodeA) && nodeIds.has(b.nodeB))
+      return next.length === prev.length ? prev : next
+    })
   }, [nodes])
 
   // Sync bridge connector nodes into the nodes array
