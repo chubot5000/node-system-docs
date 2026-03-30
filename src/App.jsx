@@ -107,37 +107,42 @@ function Flow() {
   const [selectedEdge, setSelectedEdge] = useState(null)
   const [edgeModalPos, setEdgeModalPos] = useState({ x: 0, y: 0 })
 
-  /* ── Undo / Redo ── */
+  /* ── Undo / Redo using refs for fresh state ── */
   const historyRef = useRef([])
   const historyIdxRef = useRef(-1)
   const isUndoRedoRef = useRef(false)
+  const nodesRef = useRef(nodes)
+  const edgesRef = useRef(edges)
+  const bridgesRef = useRef([])
+  nodesRef.current = nodes
+  edgesRef.current = edges
 
   const pushHistory = useCallback(() => {
     if (isUndoRedoRef.current) return
-    // Snapshot current state (excluding bridge nodes which are derived)
     const snap = {
-      nodes: JSON.parse(JSON.stringify(nodes.filter(n => !n.id.startsWith('bridge-')))),
-      edges: JSON.parse(JSON.stringify(edges)),
+      nodes: JSON.parse(JSON.stringify(nodesRef.current.filter(n => !n.id.startsWith('bridge-')))),
+      edges: JSON.parse(JSON.stringify(edgesRef.current)),
+      bridges: JSON.parse(JSON.stringify(bridgesRef.current)),
     }
-    // Truncate any redo history
     historyRef.current = historyRef.current.slice(0, historyIdxRef.current + 1)
     historyRef.current.push(snap)
     if (historyRef.current.length > 50) historyRef.current.shift()
     historyIdxRef.current = historyRef.current.length - 1
-  }, [nodes, edges])
+  }, [])
 
-  // Push initial state
+  // Push initial state once
   useEffect(() => {
     if (historyRef.current.length === 0) pushHistory()
-  }, [])
+  }, [pushHistory])
 
   // Push history on meaningful changes (debounced)
   const pushTimerRef = useRef(null)
   useEffect(() => {
     if (isUndoRedoRef.current) { isUndoRedoRef.current = false; return }
     clearTimeout(pushTimerRef.current)
-    pushTimerRef.current = setTimeout(pushHistory, 300)
-  }, [nodes, edges])
+    pushTimerRef.current = setTimeout(() => pushHistory(), 300)
+    return () => clearTimeout(pushTimerRef.current)
+  }, [nodes, edges, bridges, pushHistory])
   const [activeConnectorType, setActiveConnectorType] = useState('plain')
   const [contextMenu, setContextMenu] = useState(null)
   const [handleMenu, setHandleMenu] = useState(null)
@@ -270,7 +275,14 @@ function Flow() {
   const BRIDGE_SIZE = 30
   const BRIDGE_OVERLAP = 10  // connector overlaps 10px into each node
   const BRIDGE_GAP = BRIDGE_SIZE - BRIDGE_OVERLAP * 2  // actual gap = 10px
-  const [bridges, setBridges] = useState([])  // { id, nodeA, nodeB, side }
+  const [bridges, setBridgesRaw] = useState([])  // { id, nodeA, nodeB, side }
+  const setBridges = useCallback((val) => {
+    setBridgesRaw((prev) => {
+      const next = typeof val === 'function' ? val(prev) : val
+      bridgesRef.current = next
+      return next
+    })
+  }, [])
   const [bridgeMenu, setBridgeMenu] = useState(null) // right-click bridge context menu
   const dragStartPos = useRef({})  // track drag start for group movement
 
@@ -636,8 +648,7 @@ function Flow() {
     isUndoRedoRef.current = true
     setNodes(snap.nodes)
     setEdges(snap.edges)
-    // Rebuild bridges from snapshotted state (bridges tied to node data, so we clear them)
-    setBridges([])
+    setBridges(snap.bridges || [])
   }, [setNodes, setEdges])
 
   const redo = useCallback(() => {
@@ -647,7 +658,7 @@ function Flow() {
     isUndoRedoRef.current = true
     setNodes(snap.nodes)
     setEdges(snap.edges)
-    setBridges([])
+    setBridges(snap.bridges || [])
   }, [setNodes, setEdges])
 
   /* Clipboard: copy/cut/paste/duplicate/delete (Figma-style) */
@@ -762,7 +773,8 @@ function Flow() {
             selectionMode={SelectionMode.Partial}
             panOnDrag={[1]}
             panOnScroll
-            snapToGrid={false}
+            snapToGrid
+            snapGrid={[5, 5]}
             fitView
             fitViewOptions={{ padding: 0.08, maxZoom: 0.8 }}
             deleteKeyCode={null}
