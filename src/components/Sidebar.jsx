@@ -29,12 +29,18 @@ const nodeTypes = [
   )},
 ]
 
+const ArrowSvg = ({ rotate = 0 }) => (
+  <svg width="13" height="11" viewBox="0 0 13 11" fill="none" style={{ transform: `rotate(${rotate}deg)` }}>
+    <path d="M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z" fill="#655343"/>
+  </svg>
+)
+
 const connectorTypes = [
   { id: 'plain', title: 'Plain', content: null },
-  { id: 'arrow-right', title: '→', content: <span style={{ fontSize: 13, color: '#655343' }}>→</span> },
-  { id: 'arrow-left', title: '←', content: <span style={{ fontSize: 13, color: '#655343' }}>←</span> },
-  { id: 'arrow-up', title: '↑', content: <span style={{ fontSize: 13, color: '#655343' }}>↑</span> },
-  { id: 'arrow-down', title: '↓', content: <span style={{ fontSize: 13, color: '#655343' }}>↓</span> },
+  { id: 'arrow-right', title: '→', content: <ArrowSvg rotate={0} /> },
+  { id: 'arrow-left', title: '←', content: <ArrowSvg rotate={180} /> },
+  { id: 'arrow-up', title: '↑', content: <ArrowSvg rotate={-90} /> },
+  { id: 'arrow-down', title: '↓', content: <ArrowSvg rotate={90} /> },
   { id: 'additive', title: '+', content: <span style={{ fontSize: 15, color: '#747474', fontWeight: 600 }}>+</span> },
   { id: 'black', title: 'Black', content: null, filled: true },
 ]

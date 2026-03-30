@@ -1,29 +1,21 @@
 import { memo, useRef, useEffect } from 'react'
 
+const ArrowIcon = ({ rotate = 0 }) => (
+  <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <svg width="11" height="9" viewBox="0 0 13 11" fill="none" style={{ transform: `rotate(${rotate}deg)` }}>
+      <path d="M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z" fill="#655343"/>
+    </svg>
+  </div>
+)
+
 const connectorOptions = [
   { id: 'plain', label: 'Plain', preview: (
     <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white' }} />
   )},
-  { id: 'arrow-right', label: '→ Arrow Right', preview: (
-    <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ fontSize: 12, color: '#655343' }}>→</span>
-    </div>
-  )},
-  { id: 'arrow-left', label: '← Arrow Left', preview: (
-    <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ fontSize: 12, color: '#655343' }}>←</span>
-    </div>
-  )},
-  { id: 'arrow-up', label: '↑ Arrow Up', preview: (
-    <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ fontSize: 12, color: '#655343' }}>↑</span>
-    </div>
-  )},
-  { id: 'arrow-down', label: '↓ Arrow Down', preview: (
-    <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ fontSize: 12, color: '#655343' }}>↓</span>
-    </div>
-  )},
+  { id: 'arrow-right', label: 'Arrow Right', preview: <ArrowIcon rotate={0} /> },
+  { id: 'arrow-left', label: 'Arrow Left', preview: <ArrowIcon rotate={180} /> },
+  { id: 'arrow-up', label: 'Arrow Up', preview: <ArrowIcon rotate={-90} /> },
+  { id: 'arrow-down', label: 'Arrow Down', preview: <ArrowIcon rotate={90} /> },
   { id: 'additive', label: '+ Additive', preview: (
     <div style={{ width: 20, height: 20, border: '2px solid #747474', borderRadius: 1, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <span style={{ fontSize: 14, color: '#747474', fontWeight: 600 }}>+</span>
