@@ -29,14 +29,25 @@ import { nextHandleId, countOnSide } from './utils/handleUtils'
 
 export const ConnectorContext = createContext('plain')
 
-function BridgeNode() {
+function BridgeNode({ data }) {
   return (
-    <div className="bridge-connector-visual" style={{
-      width: 30, height: 30, background: 'white',
-      border: '2px solid #747474', borderRadius: 1.4,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 16, fontWeight: 700, color: '#747474',
-      fontFamily: 'Inter, sans-serif',
+    <div className="bridge-connector-visual" 
+      onContextMenu={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        // Dispatch custom event that App can listen to
+        window.dispatchEvent(new CustomEvent('bridge-context-menu', { 
+          detail: { x: e.clientX, y: e.clientY, bridgeId: data.bridgeId } 
+        }))
+      }}
+      style={{
+        width: 30, height: 30, background: 'white',
+        border: '2px solid #747474', borderRadius: 1.4,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 16, fontWeight: 700, color: '#747474',
+        fontFamily: 'Inter, sans-serif',
+        pointerEvents: 'all',
+        cursor: 'pointer',
     }}>+</div>
   )
 }
@@ -95,6 +106,38 @@ function Flow() {
   const [reactFlowInstance, setReactFlowInstance] = useState(null)
   const [selectedEdge, setSelectedEdge] = useState(null)
   const [edgeModalPos, setEdgeModalPos] = useState({ x: 0, y: 0 })
+
+  /* ── Undo / Redo ── */
+  const historyRef = useRef([])
+  const historyIdxRef = useRef(-1)
+  const isUndoRedoRef = useRef(false)
+
+  const pushHistory = useCallback(() => {
+    if (isUndoRedoRef.current) return
+    // Snapshot current state (excluding bridge nodes which are derived)
+    const snap = {
+      nodes: JSON.parse(JSON.stringify(nodes.filter(n => !n.id.startsWith('bridge-')))),
+      edges: JSON.parse(JSON.stringify(edges)),
+    }
+    // Truncate any redo history
+    historyRef.current = historyRef.current.slice(0, historyIdxRef.current + 1)
+    historyRef.current.push(snap)
+    if (historyRef.current.length > 50) historyRef.current.shift()
+    historyIdxRef.current = historyRef.current.length - 1
+  }, [nodes, edges])
+
+  // Push initial state
+  useEffect(() => {
+    if (historyRef.current.length === 0) pushHistory()
+  }, [])
+
+  // Push history on meaningful changes (debounced)
+  const pushTimerRef = useRef(null)
+  useEffect(() => {
+    if (isUndoRedoRef.current) { isUndoRedoRef.current = false; return }
+    clearTimeout(pushTimerRef.current)
+    pushTimerRef.current = setTimeout(pushHistory, 300)
+  }, [nodes, edges])
   const [activeConnectorType, setActiveConnectorType] = useState('plain')
   const [contextMenu, setContextMenu] = useState(null)
   const [handleMenu, setHandleMenu] = useState(null)
@@ -108,6 +151,15 @@ function Flow() {
   useEffect(() => {
     setNodes((nds) => nds.map((n) => n.id === CANVAS_ID ? { ...n, data: { ...n.data, bg: canvasBg } } : n))
   }, [canvasBg, setNodes])
+
+  // Listen for bridge right-click from BridgeNode component
+  useEffect(() => {
+    const handler = (e) => {
+      setBridgeMenu({ x: e.detail.x, y: e.detail.y, bridgeId: e.detail.bridgeId })
+    }
+    window.addEventListener('bridge-context-menu', handler)
+    return () => window.removeEventListener('bridge-context-menu', handler)
+  }, [])
   const updateNodeInternals = useUpdateNodeInternals()
   const connectingFrom = useRef(null)
 
@@ -577,6 +629,27 @@ function Flow() {
     setTimeout(() => updateNodeInternals(nodeId), 0)
   }, [setNodes, setEdges, updateNodeInternals])
 
+  const undo = useCallback(() => {
+    if (historyIdxRef.current <= 0) return
+    historyIdxRef.current--
+    const snap = historyRef.current[historyIdxRef.current]
+    isUndoRedoRef.current = true
+    setNodes(snap.nodes)
+    setEdges(snap.edges)
+    // Rebuild bridges from snapshotted state (bridges tied to node data, so we clear them)
+    setBridges([])
+  }, [setNodes, setEdges])
+
+  const redo = useCallback(() => {
+    if (historyIdxRef.current >= historyRef.current.length - 1) return
+    historyIdxRef.current++
+    const snap = historyRef.current[historyIdxRef.current]
+    isUndoRedoRef.current = true
+    setNodes(snap.nodes)
+    setEdges(snap.edges)
+    setBridges([])
+  }, [setNodes, setEdges])
+
   /* Clipboard: copy/cut/paste/duplicate/delete (Figma-style) */
   const clipboardRef = useRef([])
 
@@ -584,6 +657,20 @@ function Flow() {
     const tag = event.target.tagName.toLowerCase()
     if (tag === 'input' || tag === 'textarea') return
     const mod = event.metaKey || event.ctrlKey
+
+    // Cmd+Z — Undo
+    if (mod && !event.shiftKey && event.key === 'z') {
+      event.preventDefault()
+      undo()
+      return
+    }
+
+    // Cmd+Shift+Z — Redo
+    if (mod && event.shiftKey && event.key === 'z') {
+      event.preventDefault()
+      redo()
+      return
+    }
 
     // Delete / Backspace
     if (event.key === 'Backspace' || event.key === 'Delete') {
@@ -644,7 +731,7 @@ function Flow() {
       })
       return
     }
-  }, [setNodes, setEdges, nodes, duplicateSelected])
+  }, [setNodes, setEdges, nodes, duplicateSelected, undo, redo])
 
   return (
     <ConnectorContext.Provider value={{ activeConnectorType, onHandleContextMenu, onAddHandle, onRemoveHandle, bridges }}>
