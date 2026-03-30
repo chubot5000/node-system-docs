@@ -16,7 +16,7 @@ function LogoNode({ data, id }) {
   return (
     <NodeWrapper id={id} data={data} maxPerSide={3}
       onClick={() => fileRef.current?.click()}
-      style={{ width: 250, height: 250, background: data.fillColor || '#655343', borderRadius: 5.6, border: `2px solid ${data.strokeColor || '#655343'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+      style={{ width: 360, height: 360, background: data.fillColor || '#655343', borderRadius: 4.35, border: `2px solid ${data.strokeColor || '#655343'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
       <input ref={fileRef} type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const r = new FileReader(); r.onload = (ev) => setLogoSrc(ev.target.result); r.readAsDataURL(f) } }} style={{ display: 'none' }} />
       {logoSrc ? <img src={logoSrc} alt="" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} /> : defaultLogo}
     </NodeWrapper>

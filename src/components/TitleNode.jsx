@@ -7,7 +7,7 @@ function TitleNode({ data, id }) {
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={1}
-      style={{ width: 360, height: 100, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      style={{ width: 360, height: 120, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {editing ? (
         <input autoFocus defaultValue={title}
           onBlur={(e) => { setEditing(false); setTitle(e.target.value) }}

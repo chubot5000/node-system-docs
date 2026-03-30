@@ -64,7 +64,7 @@ const defaultEdgeOptions = {
 
 const initialNodes = [
   makeCanvasNode(DEFAULT_W, DEFAULT_H),
-  { id: '1', type: 'titleNode', position: { x: 780, y: 490 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
+  { id: '1', type: 'titleNode', position: { x: 780, y: 480 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
 ]
 
 const initialEdges = []
