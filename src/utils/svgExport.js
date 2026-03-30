@@ -4,11 +4,11 @@ const CANVAS_ID = '__canvas__'
 
 // Node type → dimensions
 const nodeDims = {
-  titleNode: { w: 360, h: 120 },
-  largeTitleNode: { w: 360, h: 360 },
-  textNode: { w: 360, h: 311 },
-  logoNode: { w: 360, h: 360 },
-  imageNode: { w: 360, h: 360 },
+  titleNode: { w: 250, h: 83.33 },
+  largeTitleNode: { w: 250, h: 250 },
+  textNode: { w: 250, h: 250 },
+  logoNode: { w: 250, h: 250 },
+  imageNode: { w: 250, h: 250 },
 }
 
 function getHandleAbsPos(handleId, allHandles, nx, ny, nw, nh) {
@@ -151,7 +151,7 @@ function renderNode(node) {
     }
   } else if (type === 'logoNode') {
     // Default logo shape
-    svg += `<g transform="translate(${x + 117.5},${y + 117.5}) scale(0.5)">
+    svg += `<g transform="translate(${x + 62.5},${y + 62.5}) scale(0.5)">
       <path d="M126.365 58.1094L200.437 102.011L180.626 129.745L124.758 96.6309L68.8887 129.745L49.0781 102.011L124.758 57.1572L126.365 58.1094Z" fill="white"/>
       <path d="M129.001 108.437L175.968 136.271L156.159 164.005L124.761 145.397L93.3623 164.005L73.5537 136.271L124.761 105.92L129.001 108.437Z" fill="white"/>
       <path d="M124.859 154.743L151.495 170.531L135.766 192.555L124.76 186.033L113.754 192.555L98.0234 170.531L124.76 154.685L124.859 154.743Z" fill="white"/>

@@ -9,7 +9,7 @@ function TextNode({ data, id }) {
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={3}
-      style={{ width: 360, minHeight: 311, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', flexDirection: 'column', padding: 24 }}>
+      style={{ width: 250, minHeight: 250, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', flexDirection: 'column', padding: 24 }}>
       {editingTitle ? (
         <input autoFocus defaultValue={title} onBlur={(e) => { setEditingTitle(false); setTitle(e.target.value) }} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
           style={{ fontSize: 23, fontWeight: 700, color: '#747474', background: 'transparent', outline: 'none', marginBottom: 16, border: 'none' }} />

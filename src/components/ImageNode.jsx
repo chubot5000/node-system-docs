@@ -9,7 +9,7 @@ function ImageNode({ data, id }) {
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={3}
-      style={{ width: 360, height: 360, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', flexDirection: 'column' }}>
+      style={{ width: 250, height: 250, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '16px 16px 8px' }}>
         {editingTitle ? (
           <input autoFocus defaultValue={title} onBlur={(e) => { setEditingTitle(false); setTitle(e.target.value) }} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
