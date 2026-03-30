@@ -5,7 +5,7 @@ const CANVAS_ID = '__canvas__'
 // Node type → dimensions
 const nodeDims = {
   miniTitleNode: { w: 250, h: 41.67 },
-  titleNode: { w: 250, h: 83.33 },
+  titleNode: { w: 250, h: 80 },
   largeTitleNode: { w: 250, h: 250 },
   textNode: { w: 250, h: 250 },
   logoNode: { w: 250, h: 250 },

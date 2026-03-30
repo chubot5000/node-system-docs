@@ -308,7 +308,7 @@ function Flow() {
     const dNode = reactFlowInstance.getNode(draggedNode.id)
     if (!dNode) return
     const dW = dNode.measured?.width ?? 250
-    const dH = dNode.measured?.height ?? 83
+    const dH = dNode.measured?.height ?? 80
     const dX = dNode.position.x
     const dY = dNode.position.y
 
@@ -322,7 +322,7 @@ function Flow() {
       if (group.has(other.id)) continue
 
       const oW = other.measured?.width ?? 250
-      const oH = other.measured?.height ?? 83
+      const oH = other.measured?.height ?? 80
       const oX = other.position.x
       const oY = other.position.y
 
@@ -414,7 +414,7 @@ function Flow() {
         const nA = filtered.find((n) => n.id === b.nodeA)
         if (!nA) return null
         const aW = nA.measured?.width ?? 250
-        const aH = nA.measured?.height ?? 83
+        const aH = nA.measured?.height ?? 80
 
         // Connector overlaps into each node by BRIDGE_OVERLAP
         let cx, cy
