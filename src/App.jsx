@@ -44,17 +44,12 @@ const defaultEdgeOptions = {
 }
 
 const initialNodes = [
-  { id: '1', type: 'titleNode', position: { x: 350, y: 60 }, data: { label: 'Data Center', activeHandles: ['bottom-0'], handleTypes: {} } },
-  { id: '2', type: 'textNode', position: { x: 350, y: 220 }, data: { label: 'Data Center', activeHandles: ['top-0', 'bottom-0'], handleTypes: {}, body: 'Choose from a collection of ready-made templates, made by creative professionals and ready for you to customize.\n\nChoose from a collection of ready-made templates, made by creative professionals.' } },
-  { id: '3', type: 'logoNode', position: { x: 800, y: 60 }, data: { activeHandles: ['bottom-0'], handleTypes: {} } },
-  { id: '4', type: 'imageNode', position: { x: 800, y: 370 }, data: { label: 'GPU', activeHandles: ['bottom-0'], handleTypes: {} } },
+  { id: '1', type: 'titleNode', position: { x: 400, y: 200 }, data: { label: 'New Title', activeHandles: ['bottom-0'], handleTypes: {} } },
 ]
 
-const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom-0', targetHandle: 'top-0-tgt', label: 'OWNS', labelBgPadding: [16, 10] },
-]
+const initialEdges = []
 
-let id = 5
+let id = 2
 const getId = () => `${id++}`
 
 function Flow() {
@@ -132,18 +127,22 @@ function Flow() {
       const ht = { ...(n.data.handleTypes || {}), [newHandleId]: activeConnectorType || 'plain' }
       return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
     }))
-    setTimeout(() => updateNodeInternals(targetNodeId), 0)
 
-    setTimeout(() => {
-      setEdges((eds) => addEdge({
-        source: from.nodeId,
-        sourceHandle: from.handleId,
-        target: targetNodeId,
-        targetHandle: `${newHandleId}-tgt`,
-        style: { stroke: '#747474', strokeWidth: 2 },
-        labelBgPadding: [16, 10],
-      }, eds))
-    }, 50)
+    // Wait for React to render the new handle, then register it, then create the edge
+    requestAnimationFrame(() => {
+      updateNodeInternals(targetNodeId)
+      // Wait another frame for React Flow to register the new handle positions
+      requestAnimationFrame(() => {
+        setEdges((eds) => addEdge({
+          source: from.nodeId,
+          sourceHandle: from.handleId,
+          target: targetNodeId,
+          targetHandle: `${newHandleId}-tgt`,
+          style: { stroke: '#747474', strokeWidth: 2 },
+          labelBgPadding: [16, 10],
+        }, eds))
+      })
+    })
   }, [reactFlowInstance, nodes, setNodes, setEdges, activeConnectorType, updateNodeInternals])
 
   const onDragOver = useCallback((event) => {
