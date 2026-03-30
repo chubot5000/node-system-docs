@@ -98,12 +98,34 @@ function Flow() {
   const connectingFrom = useRef(null)
 
   const onConnectStart = useCallback((event, params) => {
-    connectingFrom.current = params
-  }, [])
+    // If dragging from a ghost handle, promote it to a real handle
+    if (params.handleId?.startsWith('__ghost__')) {
+      const realId = params.handleId.replace('__ghost__', '')
+      const nodeId = params.nodeId
+
+      setNodes((nds) => nds.map((n) => {
+        if (n.id !== nodeId) return n
+        if (n.data.activeHandles.includes(realId)) return n
+        const ah = [...n.data.activeHandles, realId]
+        const ht = { ...n.data.handleTypes, [realId]: activeConnectorType || 'plain' }
+        return { ...n, data: { ...n.data, activeHandles: ah, handleTypes: ht } }
+      }))
+      setTimeout(() => updateNodeInternals(nodeId), 0)
+
+      // Rewrite params so the connection uses the real handle ID
+      connectingFrom.current = { ...params, handleId: realId }
+    } else {
+      connectingFrom.current = params
+    }
+  }, [setNodes, activeConnectorType, updateNodeInternals])
 
   const onConnect = useCallback((params) => {
     connectingFrom.current = null
-    setEdges((eds) => addEdge({ ...params, style: { stroke: '#747474', strokeWidth: 2 }, labelBgPadding: [16, 10] }, eds))
+    // Rewrite ghost handle IDs to real IDs
+    const cleaned = { ...params }
+    if (cleaned.sourceHandle?.startsWith('__ghost__')) cleaned.sourceHandle = cleaned.sourceHandle.replace('__ghost__', '')
+    if (cleaned.targetHandle?.startsWith('__ghost__')) cleaned.targetHandle = cleaned.targetHandle.replace('__ghost__', '')
+    setEdges((eds) => addEdge({ ...cleaned, style: { stroke: '#747474', strokeWidth: 2 }, labelBgPadding: [16, 10] }, eds))
   }, [setEdges])
 
   const onConnectEnd = useCallback((event) => {
