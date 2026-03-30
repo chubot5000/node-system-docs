@@ -15,7 +15,7 @@ export function getHandleStyle(handleId, activeHandles) {
   const sorted = (group[side] || []).sort()
   const idx = sorted.indexOf(handleId)
   const count = sorted.length
-  const pct = ((idx + 1) / (count + 1)) * 100
+  const pct = ((idx + 1) / (count + 1)) * 100 + (count > 1 ? (50 - ((idx + 1) / (count + 1)) * 100) * 0.07 : 0)
   return (side === 'top' || side === 'bottom') ? { left: `${pct}%` } : { top: `${pct}%` }
 }
 
