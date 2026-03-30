@@ -31,13 +31,18 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
     >
       {handles.map((hId) => {
         const side = hId.split('-')[0]
-        return (
-          <Handle key={hId} type="source" position={posMap[side]} id={hId}
+        const posStyle = getHandleStyle(hId, handles)
+        return [
+          <Handle key={`${hId}-src`} type="source" position={posMap[side]} id={hId}
             className={getHandleCls(hTypes[hId])}
-            style={getHandleStyle(hId, handles)}
+            style={posStyle}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ctx.onHandleContextMenu?.(e, id, hId, hTypes[hId] || 'plain') }}
+          />,
+          <Handle key={`${hId}-tgt`} type="target" position={posMap[side]} id={`${hId}-tgt`}
+            className="handle-overlay"
+            style={{ ...posStyle, opacity: 0 }}
           />
-        )
+        ]
       })}
 
       {hovered && allSides.map((side) => {

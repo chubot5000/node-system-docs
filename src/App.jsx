@@ -51,7 +51,7 @@ const initialNodes = [
 ]
 
 const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom-0', targetHandle: 'top-0', label: 'OWNS', labelBgPadding: [16, 10] },
+  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'bottom-0', targetHandle: 'top-0-tgt', label: 'OWNS', labelBgPadding: [16, 10] },
 ]
 
 let id = 5
@@ -139,7 +139,7 @@ function Flow() {
         source: from.nodeId,
         sourceHandle: from.handleId,
         target: targetNodeId,
-        targetHandle: newHandleId,
+        targetHandle: `${newHandleId}-tgt`,
         style: { stroke: '#747474', strokeWidth: 2 },
         labelBgPadding: [16, 10],
       }, eds))
@@ -261,7 +261,7 @@ function Flow() {
     }))
     setEdges((eds) => eds.filter((e) => {
       if (e.source === nodeId && e.sourceHandle === handleId) return false
-      if (e.target === nodeId && e.targetHandle === handleId) return false
+      if (e.target === nodeId && (e.targetHandle === handleId || e.targetHandle === `${handleId}-tgt`)) return false
       return true
     }))
     setTimeout(() => updateNodeInternals(nodeId), 0)
