@@ -11,9 +11,9 @@ function LargeTitleNode({ data, id }) {
 
   return (
     <NodeWrapper id={id} data={data} maxPerSide={3}
-      style={{ width: 250, height: 250, border: `2px solid ${data.strokeColor || '#747474'}`, borderRadius: 4.35, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      style={{ width: 160, height: 160, border: `1px solid ${data.strokeColor || '#A99482'}`, borderRadius: 3, background: data.fillColor || 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <EditableText value={data.label || 'Large Title'} onChange={updateLabel} placeholder="Title"
-        style={{ fontSize: 23, fontWeight: 700, color: '#747474', textAlign: 'center', padding: '0 16px', width: '100%' }} />
+        style={{ fontSize: 13, fontWeight: 600, color: '#655343', textAlign: 'center', padding: '0 12px', width: '100%' }} />
     </NodeWrapper>
   )
 }

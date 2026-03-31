@@ -42,10 +42,10 @@ function BridgeNode({ data }) {
         }))
       }}
       style={{
-        width: 30, height: 30, background: 'white',
-        border: '2px solid #747474', borderRadius: 1.4,
+        width: 12, height: 12, background: 'white',
+        border: '1px solid #A99482', borderRadius: 1,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 16, fontWeight: 700, color: '#747474',
+        fontSize: 9, fontWeight: 600, color: '#A99482',
         fontFamily: 'Inter, sans-serif',
         pointerEvents: 'all', cursor: 'pointer',
     }}>+</div>
@@ -84,10 +84,10 @@ const makeCanvasNode = (w, h) => ({
 
 const defaultEdgeOptions = {
   type: 'default',
-  style: { stroke: '#747474', strokeWidth: 2 },
+  style: { stroke: '#A99482', strokeWidth: 1 },
   animated: false,
-  labelBgPadding: [16, 10],
-  labelBgBorderRadius: 6,
+  labelBgPadding: [8, 4],
+  labelBgBorderRadius: 3,
 }
 
 const initialNodes = [
@@ -255,9 +255,9 @@ function Flow() {
 
   /* ── Snap & Bridge: overlapping connector + group drag ── */
   const SNAP_THRESHOLD = 50
-  const BRIDGE_SIZE = 30
-  const BRIDGE_OVERLAP = 10  // connector overlaps 10px into each node
-  const BRIDGE_GAP = BRIDGE_SIZE - BRIDGE_OVERLAP * 2  // actual gap = 10px
+  const BRIDGE_SIZE = 12
+  const BRIDGE_OVERLAP = 4  // connector overlaps 4px into each node
+  const BRIDGE_GAP = BRIDGE_SIZE - BRIDGE_OVERLAP * 2  // actual gap = 4px
   const [bridges, setBridges] = useState([])  // { id, nodeA, nodeB, side }
   const dragStartPos = useRef({})  // track drag start for group movement
 
@@ -611,7 +611,7 @@ function Flow() {
         return {
           ...original,
           id: getId(),
-          position: { x: original.position.x + 50, y: original.position.y + 50 },
+          position: { x: original.position.x + 30, y: original.position.y + 30 },
           selected: false,
           data: { ...original.data, activeHandles: [...original.data.activeHandles], handleTypes: { ...original.data.handleTypes } },
         }
@@ -628,7 +628,7 @@ function Flow() {
       const clones = sel.map((n) => ({
         ...n,
         id: getId(),
-        position: { x: n.position.x + 50, y: n.position.y + 50 },
+        position: { x: n.position.x + 30, y: n.position.y + 30 },
         selected: true,
         data: { ...n.data, activeHandles: [...(n.data.activeHandles || [])], handleTypes: { ...(n.data.handleTypes || {}) } },
       }))
@@ -864,7 +864,7 @@ function Flow() {
         const pasted = clipboardRef.current.map((n) => ({
           ...n,
           id: getId(),
-          position: { x: n.position.x + 50, y: n.position.y + 50 },
+          position: { x: n.position.x + 30, y: n.position.y + 30 },
           selected: true,
           data: { ...n.data, activeHandles: [...(n.data.activeHandles || [])], handleTypes: { ...(n.data.handleTypes || {}) } },
         }))

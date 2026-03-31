@@ -13,58 +13,46 @@ body {
   height: 100vh;
 }
 
-.react-flow__background {
-  background-color: #F5F3F0 !important;
-}
-
+/* ── Edges ── */
 .react-flow__edge-path {
-  stroke: #747474 !important;
-  stroke-width: 2px !important;
+  stroke: #A99482 !important;
+  stroke-width: 1px !important;
 }
 
-/* Connector squares — z-index 10 so they sit above ghost add-zones (z-1) */
+/* ── Connector handles: 12×12, 1px border ── */
 .react-flow__handle {
-  width: 30px !important;
-  height: 30px !important;
+  width: 12px !important;
+  height: 12px !important;
   background: white !important;
-  border: 2px solid #747474 !important;
-  border-radius: 1.4px !important;
+  border: 1px solid #A99482 !important;
+  border-radius: 1px !important;
   z-index: 10 !important;
 }
 
-/* Black filled */
 .react-flow__handle.handle-black {
-  background: black !important;
+  background: #333 !important;
 }
 
-/* Additive + */
 .react-flow__handle.handle-additive {
-  background: white url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 2v10M2 7h10' stroke='%23747474' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") center/14px 14px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='8' height='8' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 2v10M2 7h10' stroke='%23A99482' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center/8px 8px no-repeat !important;
 }
 
-/* Arrow right → */
 .react-flow__handle.handle-arrow-right {
-  background: white url("data:image/svg+xml,%3Csvg width='13' height='11' viewBox='0 0 13 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/svg%3E") center/13px 11px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='8' height='7' viewBox='0 0 13 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/svg%3E") center/8px 7px no-repeat !important;
 }
 
-/* Arrow left ← */
 .react-flow__handle.handle-arrow-left {
-  background: white url("data:image/svg+xml,%3Csvg width='13' height='11' viewBox='0 0 13 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(180,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/13px 11px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='8' height='7' viewBox='0 0 13 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(180,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/8px 7px no-repeat !important;
 }
 
-/* Arrow up ↑ */
 .react-flow__handle.handle-arrow-up {
-  background: white url("data:image/svg+xml,%3Csvg width='11' height='13' viewBox='1 -1 11 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(-90,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/11px 13px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='7' height='8' viewBox='1 -1 11 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(-90,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/7px 8px no-repeat !important;
 }
 
-/* Arrow down ↓ */
 .react-flow__handle.handle-arrow-down {
-  background: white url("data:image/svg+xml,%3Csvg width='11' height='13' viewBox='1 -1 11 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(90,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/11px 13px no-repeat !important;
+  background: white url("data:image/svg+xml,%3Csvg width='7' height='8' viewBox='1 -1 11 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='rotate(90,6.5,5.5)'%3E%3Cpath d='M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0391 11.6158 6.39965L1.52653 10.8992C0.612929 11.3068-0.335502 10.4018 0.117325 9.55355L2.04352 5.9456C2.19324 5.66511 2.19324 5.3345 2.04352 5.05461L0.117326 1.44666C-0.33489 0.598454 0.612319-0.307199 1.52653 0.101018Z' fill='%23655343'/%3E%3C/g%3E%3C/svg%3E") center/7px 8px no-repeat !important;
 }
 
-/* Transparent target overlay — pointer-events:none so it doesn't block the source handle.
-   React Flow detects drop targets via internal handle position store, not DOM hit-testing,
-   so connections still land on these handles even without pointer events. */
 .react-flow__handle.handle-overlay {
   opacity: 0 !important;
   pointer-events: none !important;
@@ -74,25 +62,25 @@ body {
 .react-flow__minimap { display: none; }
 .react-flow__controls { display: none !important; }
 
-/* Edge label styling */
+/* ── Edge labels ── */
 .react-flow__edge-textwrapper {
   pointer-events: all;
 }
 .react-flow__edge-text {
   fill: #655343;
-  font-size: 18px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .react-flow__edge-textbg {
   fill: white;
-  stroke: #CFCBC8;
-  stroke-width: 2;
-  rx: 6;
+  stroke: #C5B9AC;
+  stroke-width: 1;
+  rx: 3;
 }
 
-/* Canvas frame node — no selection ring, no padding */
+/* ── Canvas frame ── */
 .react-flow__node[data-id="__canvas__"] {
   padding: 0 !important;
   border: none !important;
@@ -108,8 +96,8 @@ body {
 .react-flow__node[data-id="__canvas__"].selected,
 .react-flow__node[data-id="__canvas__"]:focus,
 .react-flow__node[data-id^="bridge-"].selected .bridge-connector-visual {
-  outline: 1.5px solid rgba(101, 83, 67, 0.5);
-  outline-offset: 3px;
+  outline: 1px solid rgba(169, 148, 130, 0.4);
+  outline-offset: 2px;
   border-radius: 2px;
 }
 .react-flow__node[data-id^="bridge-"].selected,
@@ -118,15 +106,15 @@ body {
   box-shadow: none !important;
 }
 
-/* Selected node indicator — subtle blue outline */
+/* ── Selected node ring ── */
 .react-flow__node.selected:not([data-id="__canvas__"]):not([data-id^="bridge-"]) {
-  outline: 1.5px solid rgba(101, 83, 67, 0.35) !important;
-  outline-offset: 4px !important;
-  border-radius: 4px;
+  outline: 1px solid rgba(169, 148, 130, 0.4) !important;
+  outline-offset: 3px !important;
+  border-radius: 3px;
 }
 .react-flow__node:focus:not([data-id="__canvas__"]):not([data-id^="bridge-"]) {
-  outline: 1.5px solid rgba(101, 83, 67, 0.35) !important;
-  outline-offset: 4px !important;
+  outline: 1px solid rgba(169, 148, 130, 0.4) !important;
+  outline-offset: 3px !important;
 }
 
 .flex.h-screen.w-screen:focus {

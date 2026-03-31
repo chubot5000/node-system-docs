@@ -127,22 +127,23 @@ export default function NodeWrapper({ id, data, maxPerSide = 3, style, onClick, 
         if (count >= maxPerSide) return null
         const isH = side === 'top' || side === 'bottom'
         const pct = ((count + 1) / (count + 2)) * 100
+        const hs = 6 // half connector size (12/2)
         const zones = {
-          top: { top: -15, left: 0, right: 0, height: 30 },
-          bottom: { bottom: -15, left: 0, right: 0, height: 30 },
-          left: { left: -15, top: 0, bottom: 0, width: 30 },
-          right: { right: -15, top: 0, bottom: 0, width: 30 },
+          top: { top: -hs, left: 0, right: 0, height: hs * 2 },
+          bottom: { bottom: -hs, left: 0, right: 0, height: hs * 2 },
+          left: { left: -hs, top: 0, bottom: 0, width: hs * 2 },
+          right: { right: -hs, top: 0, bottom: 0, width: hs * 2 },
         }
         const ghostPos = isH
-          ? { left: `${pct}%`, marginLeft: -15, top: 0 }
-          : { top: `${pct}%`, marginTop: -15, left: 0 }
+          ? { left: `${pct}%`, marginLeft: -hs, top: 0 }
+          : { top: `${pct}%`, marginTop: -hs, left: 0 }
 
         return (
           <div key={side} style={{ position: 'absolute', ...zones[side], zIndex: 1, cursor: 'crosshair' }}
             onMouseEnter={() => setHoveredSide(side)} onMouseLeave={() => setHoveredSide(null)}
             onPointerDown={(e) => onGhostPointerDown(e, side)}>
             {hoveredSide === side && (
-              <div style={{ position: 'absolute', ...ghostPos, width: 30, height: 30, background: 'white', border: '2px solid #747474', borderRadius: 1.4, opacity: 0.45, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', ...ghostPos, width: 12, height: 12, background: 'white', border: '1px solid #A99482', borderRadius: 1, opacity: 0.45, pointerEvents: 'none' }} />
             )}
           </div>
         )

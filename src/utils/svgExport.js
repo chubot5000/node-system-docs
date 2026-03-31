@@ -3,13 +3,13 @@
 const CANVAS_ID = '__canvas__'
 
 const nodeDims = {
-  miniTitleNode: { w: 180, h: 80 },
-  titleNode: { w: 250, h: 80 },
-  largeTitleNode: { w: 250, h: 250 },
-  textNode: { w: 250, h: 250 },
-  logoNode: { w: 250, h: 250 },
-  imageNode: { w: 250, h: 250 },
-  smallImageNode: { w: 360, h: 100 },
+  miniTitleNode: { w: 90, h: 40 },
+  titleNode: { w: 160, h: 40 },
+  largeTitleNode: { w: 160, h: 160 },
+  textNode: { w: 180, h: 160 },
+  logoNode: { w: 130, h: 130 },
+  imageNode: { w: 200, h: 160 },
+  smallImageNode: { w: 200, h: 50 },
 }
 
 function getHandleAbsPos(handleId, allHandles, nx, ny, nw, nh) {
@@ -53,24 +53,24 @@ const arrowPath = 'M1.52653 0.101018L11.6158 4.60057C12.4249 4.96112 12.4249 6.0
 function renderHandle(handleId, allHandles, handleTypes, nx, ny, nw, nh) {
   const pos = getHandleAbsPos(handleId, allHandles, nx, ny, nw, nh)
   const type = handleTypes[handleId] || 'plain'
-  const hx = pos.x - 15, hy = pos.y - 15
-  const fill = type === 'black' ? 'black' : 'white'
+  const hx = pos.x - 6, hy = pos.y - 6
+  const fill = type === 'black' ? '#333' : 'white'
   let inner = ''
 
   if (type === 'additive') {
-    inner = `<line x1="${pos.x - 5}" y1="${pos.y}" x2="${pos.x + 5}" y2="${pos.y}" stroke="#747474" stroke-width="1.8" stroke-linecap="round"/>
-    <line x1="${pos.x}" y1="${pos.y - 5}" x2="${pos.x}" y2="${pos.y + 5}" stroke="#747474" stroke-width="1.8" stroke-linecap="round"/>`
+    inner = `<line x1="${pos.x - 3}" y1="${pos.y}" x2="${pos.x + 3}" y2="${pos.y}" stroke="#A99482" stroke-width="1" stroke-linecap="round"/>
+    <line x1="${pos.x}" y1="${pos.y - 3}" x2="${pos.x}" y2="${pos.y + 3}" stroke="#A99482" stroke-width="1" stroke-linecap="round"/>`
   } else if (type === 'arrow-right') {
-    inner = `<g transform="translate(${pos.x - 6.5},${pos.y - 5.5})"><path d="${arrowPath}" fill="#655343"/></g>`
+    inner = `<g transform="translate(${pos.x - 4},${pos.y - 3.5}) scale(0.6)"><path d="${arrowPath}" fill="#655343"/></g>`
   } else if (type === 'arrow-left') {
-    inner = `<g transform="translate(${pos.x + 6.5},${pos.y + 5.5}) rotate(180)"><path d="${arrowPath}" fill="#655343"/></g>`
+    inner = `<g transform="translate(${pos.x + 4},${pos.y + 3.5}) scale(0.6) rotate(180)"><path d="${arrowPath}" fill="#655343"/></g>`
   } else if (type === 'arrow-up') {
-    inner = `<g transform="translate(${pos.x + 5.5},${pos.y + 6.5}) rotate(-90)"><path d="${arrowPath}" fill="#655343"/></g>`
+    inner = `<g transform="translate(${pos.x + 3.5},${pos.y + 4}) scale(0.6) rotate(-90)"><path d="${arrowPath}" fill="#655343"/></g>`
   } else if (type === 'arrow-down') {
-    inner = `<g transform="translate(${pos.x - 5.5},${pos.y - 6.5}) rotate(90)"><path d="${arrowPath}" fill="#655343"/></g>`
+    inner = `<g transform="translate(${pos.x - 3.5},${pos.y - 4}) scale(0.6) rotate(90)"><path d="${arrowPath}" fill="#655343"/></g>`
   }
 
-  return `<rect x="${hx}" y="${hy}" width="30" height="30" rx="1.4" fill="${fill}" stroke="#747474" stroke-width="2"/>${inner}`
+  return `<rect x="${hx}" y="${hy}" width="12" height="12" rx="1" fill="${fill}" stroke="#A99482" stroke-width="1"/>${inner}`
 }
 
 function renderEdge(edge, nodesMap) {
@@ -100,16 +100,16 @@ function renderEdge(edge, nodesMap) {
   const sc = cp(srcPos, srcPos.side)
   const tc = cp(tgtPos, tgtPos.side)
 
-  let svg = `<path d="M${srcPos.x},${srcPos.y} C${sc.x},${sc.y} ${tc.x},${tc.y} ${tgtPos.x},${tgtPos.y}" fill="none" stroke="#747474" stroke-width="2"/>`
+  let svg = `<path d="M${srcPos.x},${srcPos.y} C${sc.x},${sc.y} ${tc.x},${tc.y} ${tgtPos.x},${tgtPos.y}" fill="none" stroke="#A99482" stroke-width="1"/>`
 
   if (edge.label) {
     const mx = (srcPos.x + tgtPos.x) / 2
     const my = (srcPos.y + tgtPos.y) / 2
     const labelText = escXml(edge.label)
-    const labelW = labelText.length * 10 + 32
-    const labelH = 36
-    svg += `<rect x="${mx - labelW / 2}" y="${my - labelH / 2}" width="${labelW}" height="${labelH}" rx="6" fill="white" stroke="#CFCBC8" stroke-width="2"/>
-    <text x="${mx}" y="${my + 5}" text-anchor="middle" fill="#655343" font-size="18" font-weight="600" letter-spacing="0.05em" style="text-transform:uppercase">${labelText}</text>`
+    const labelW = labelText.length * 7 + 16
+    const labelH = 22
+    svg += `<rect x="${mx - labelW / 2}" y="${my - labelH / 2}" width="${labelW}" height="${labelH}" rx="3" fill="white" stroke="#C5B9AC" stroke-width="1"/>
+    <text x="${mx}" y="${my + 5}" text-anchor="middle" fill="#655343" font-size="11" font-weight="600" letter-spacing="0.05em" style="text-transform:uppercase">${labelText}</text>`
   }
 
   return svg
@@ -121,18 +121,18 @@ function renderNode(node) {
   if (!dims) return '' // unknown type — skip
   const { w, h } = dims
   const fill = data.fillColor || (type === 'logoNode' ? '#655343' : 'white')
-  const stroke = data.strokeColor || (type === 'logoNode' ? '#655343' : '#747474')
+  const stroke = data.strokeColor || (type === 'logoNode' ? '#655343' : '#A99482')
   const radius = type === 'logoNode' ? 5.6 : 4.35
   const handles = data.activeHandles || []
   const hTypes = data.handleTypes || {}
 
   let svg = `<g id="node-${escXml(node.id)}">`
-  svg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`
+  svg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>`
 
   if (type === 'smallImageNode') {
-    const imgSize = 100
+    const imgSize = 50
     svg += `<rect x="${x}" y="${y}" width="${imgSize}" height="${h}" rx="3" fill="#DBD0C6"/>`
-    svg += `<line x1="${x + imgSize}" y1="${y}" x2="${x + imgSize}" y2="${y + h}" stroke="${stroke}" stroke-width="2"/>`
+    svg += `<line x1="${x + imgSize}" y1="${y}" x2="${x + imgSize}" y2="${y + h}" stroke="${stroke}" stroke-width="1"/>`
     if (data.imageSrc) {
       const clipId = `clip-simg-${node.id}`
       svg += `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${imgSize}" height="${h}" rx="3"/></clipPath>`
@@ -147,12 +147,12 @@ function renderNode(node) {
     // Title on right
     const label = escXml(data.label || '')
     if (label) {
-      svg += `<text x="${x + imgSize + (w - imgSize) / 2}" y="${y + h / 2 + 8}" text-anchor="middle" fill="#747474" font-size="23" font-weight="700">${label}</text>`
+      svg += `<text x="${x + imgSize + (w - imgSize) / 2}" y="${y + h / 2 + 8}" text-anchor="middle" fill="#655343" font-size="13" font-weight="700">${label}</text>`
     }
   } else if (type === 'miniTitleNode' || type === 'titleNode' || type === 'largeTitleNode') {
     const label = escXml(data.label || '')
     if (label) {
-      svg += `<text x="${x + w / 2}" y="${y + h / 2 + 8}" text-anchor="middle" fill="#747474" font-size="23" font-weight="700">${label}</text>`
+      svg += `<text x="${x + w / 2}" y="${y + h / 2 + 8}" text-anchor="middle" fill="#655343" font-size="13" font-weight="700">${label}</text>`
     }
   } else if (type === 'textNode') {
     // Clip content to node bounds
@@ -160,10 +160,10 @@ function renderNode(node) {
     svg += `<clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}"/></clipPath>`
     svg += `<g clip-path="url(#${clipId})">`
     const label = escXml(data.label || '')
-    if (label) svg += `<text x="${x + 24}" y="${y + 40}" fill="#747474" font-size="23" font-weight="700">${label}</text>`
+    if (label) svg += `<text x="${x + 14}" y="${y + 26}" fill="#655343" font-size="13" font-weight="700">${label}</text>`
     if (data.body) {
-      wrapText(data.body, 22).forEach((line, i) => {
-        svg += `<text x="${x + 24}" y="${y + 72 + i * 29}" fill="#747474" font-size="18">${escXml(line)}</text>`
+      wrapText(data.body, 24).forEach((line, i) => {
+        svg += `<text x="${x + 14}" y="${y + 46 + i * 16}" fill="#7A6E63" font-size="11">${escXml(line)}</text>`
       })
     }
     svg += `</g>`
@@ -184,18 +184,18 @@ function renderNode(node) {
     }
   } else if (type === 'imageNode') {
     const label = escXml(data.label || '')
-    if (label) svg += `<text x="${x + 16}" y="${y + 34}" fill="#747474" font-size="23" font-weight="700">${label}</text>`
+    if (label) svg += `<text x="${x + 12}" y="${y + 22}" fill="#655343" font-size="13" font-weight="700">${label}</text>`
     if (data.imageSrc) {
-      svg += `<rect x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" rx="6" fill="#E6D9CE" stroke="#655343" stroke-width="1"/>`
+      svg += `<rect x="${x + 10}" y="${y + 34}" width="${w - 20}" height="${h - 44}" rx="3" fill="#EDE7E0" stroke="#A99482" stroke-width="1"/>`
       const clipId = `clip-img-${node.id}`
-      svg += `<clipPath id="${clipId}"><rect x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" rx="6"/></clipPath>`
-      svg += `<image x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" href="${escXml(data.imageSrc)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>`
+      svg += `<clipPath id="${clipId}"><rect x="${x + 10}" y="${y + 34}" width="${w - 20}" height="${h - 44}" rx="6"/></clipPath>`
+      svg += `<image x="${x + 10}" y="${y + 34}" width="${w - 20}" height="${h - 44}" href="${escXml(data.imageSrc)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>`
     } else {
-      svg += `<rect x="${x + 16}" y="${y + 50}" width="${w - 32}" height="${h - 66}" rx="6" fill="#E6D9CE" stroke="#655343" stroke-width="1"/>`
+      svg += `<rect x="${x + 10}" y="${y + 34}" width="${w - 20}" height="${h - 44}" rx="3" fill="#EDE7E0" stroke="#A99482" stroke-width="1"/>`
       svg += `<g transform="translate(${x + w / 2 - 24},${y + h / 2 - 12})">
-        <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#655343" stroke-width="1.5"/>
+        <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#A99482" stroke-width="1.5"/>
         <circle cx="8.5" cy="8.5" r="1.5" fill="#655343"/>
-        <path d="M21 15l-5-5L5 21" fill="none" stroke="#655343" stroke-width="1.5"/>
+        <path d="M21 15l-5-5L5 21" fill="none" stroke="#A99482" stroke-width="1.5"/>
       </g>`
     }
   }
