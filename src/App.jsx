@@ -86,7 +86,7 @@ const defaultEdgeOptions = {
   type: 'default',
   style: { stroke: '#A99482', strokeWidth: 1 },
   animated: false,
-  labelBgPadding: [5, 2],
+  labelBgPadding: [6, 0],
   labelBgBorderRadius: 3,
 }
 
