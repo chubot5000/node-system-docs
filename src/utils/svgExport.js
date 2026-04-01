@@ -19,7 +19,7 @@ function getHandleAbsPos(handleId, allHandles, nx, ny, nw, nh) {
   const count = sideHandles.length
   // Match the compression formula from handleUtils.js
   const evenPct = (idx + 1) / (count + 1)
-  const pct = evenPct + (count > 1 ? (0.5 - evenPct) * 0.07 : 0)
+  const pct = count > 1 ? 0.5 + (evenPct - 0.5) * 0.5 : evenPct
   switch (side) {
     case 'top': return { x: nx + nw * pct, y: ny, side }
     case 'bottom': return { x: nx + nw * pct, y: ny + nh, side }
@@ -107,7 +107,7 @@ function renderEdge(edge, nodesMap) {
     const my = (srcPos.y + tgtPos.y) / 2
     const labelText = escXml(edge.label)
     const labelW = labelText.length * 7 + 16
-    const labelH = 22
+    const labelH = 15
     svg += `<rect x="${mx - labelW / 2}" y="${my - labelH / 2}" width="${labelW}" height="${labelH}" rx="3" fill="white" stroke="#C5B9AC" stroke-width="1"/>
     <text x="${mx}" y="${my + 5}" text-anchor="middle" fill="#655343" font-size="11" font-weight="600" letter-spacing="0.05em" style="text-transform:uppercase">${labelText}</text>`
   }
